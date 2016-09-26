@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.opengis.net/kml/2.2,100 http://schemas.opengis.net/kml/2.2.0/ogckml22.xsd http://www.google.com/kml/ext/2.2,100 http://code.google.com/apis/kml/schema/kml22gx.xsd">
+    <Document id="{{kml_map.id}}">
+        <name>{{kml_map.name}}</name>
+        <Snippet></Snippet>
+        <Folder id="FeatureLayer0">
+            <name>{{kml_map.name}}</name>
+            <Snippet></Snippet>
+            {% for area_bin in area_bins %}
+            <Placemark id="{{kml_map.id}}_{{area_bin.area.id}}">
+                <name>{{area_bin.area.name}}</name>
+                <styleUrl>#BinStyle</styleUrl>
+                <Style>
+                    <PolyStyle>
+                        <color>{{area_bin.color}}</color>
+                        <outline>1</outline>
+                    </PolyStyle>
+                </Style>
+                <Polygon>
+                  <extrude>1</extrude>
+                  <altitudeMode>relativeToGround</altitudeMode>
+                  <outerBoundaryIs>
+                    <LinearRing>
+                        <coordinates>
+                            {% for point in area_bin.polygon %}
+                            {{point.0}},{{point.1}},{{area_bin.height}}
+                            {% endfor %}
+                        </coordinates>
+                    </LinearRing>
+                  </outerBoundaryIs>
+                </Polygon>
+            </Placemark>
+            {% endfor %}
+        </Folder>
+        <Style id="BinStyle">
+            <LabelStyle>
+              <color>ffffffff</color>
+              <scale>1.000000</scale>
+            </LabelStyle>
+            <LineStyle>
+              <color>00000000</color>
+              <width>0.000000</width>
+            </LineStyle>
+            <PolyStyle>
+              <color>af0070ff</color>
+              <outline>1</outline>
+            </PolyStyle>
+        </Style>
+    </Document>
+</kml>
