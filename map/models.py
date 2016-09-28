@@ -1,7 +1,9 @@
-from bs4 import BeautifulSoup
-from sodapy import Socrata
+import re
 import matplotlib.path as matplotlib_path
 import numpy as np
+
+from pyquery import PyQuery as pq
+from sodapy import Socrata
 
 from django.db import models
 from django.utils import timezone
@@ -14,6 +16,7 @@ AREA_TYPES = (
 	("UNCATEGORIZED", "Uncategorized"),
 	("NEIGHBORHOOD", "Neighborhood"),
 	("WARD", "Ward"),
+	("DISTRICT", "District"),
 	("STATE", "State"),
 	("COUNTRY", "Country"),
 	("REGION", "Region"),
@@ -57,6 +60,16 @@ class Area(models.Model):
 	def get_polygon_list(self):
 		return [point.split(",") for point in self.polygon.split(";")]
 
+	def mbr_from_polygon(self):
+		points = self.polygon.split(";")
+		lngs = []
+		lats = []
+		for point in points:
+			coords = point.split(",")
+			lngs.append(float(coords[0]))
+			lats.append(float(coords[1]))
+		return "{n},{e},{s},{w}".format(n=max(lats), e=max(lngs), s=min(lats), w=min(lngs))
+
 	def save(self, *args, **kwargs):
 		self.created_time = self.created_time or timezone.now()
 		return super().save(*args, **kwargs)
@@ -65,18 +78,53 @@ class Area(models.Model):
 class AreaMap(models.Model):
 	""" A collection of areas (e.g. Chicago Neighborhoods)"""
 	name = models.CharField(max_length=255)
-	areas = models.ManyToManyField("Area")
+	areas = models.ManyToManyField("Area", null=True, blank=True)
 	data_source = models.CharField(max_length=255, null=True, blank=True) # e.g. "data.cityofchicago.org"
 	dataset_identifier = models.CharField(max_length=255, null=True, blank=True)
+
 	kml_file = models.FileField(upload_to="uploads/areamap/", null=True, blank=True)
+	area_name_path = models.CharField(max_length=255, null=True, blank=True)
+	area_external_identifier_path = models.CharField(max_length=255, null=True, blank=True)
+	area_default_type = models.CharField(max_length=50, null=True, blank=True)
 
 	created_time = models.DateTimeField()
 
-	@classmethod
-	def import_from_kml(cls, file):
-		"""write code to import from kml file using beautiful soup"""
-		# soup = BeautifulSoup(open(file))
-		pass
+	def import_areas_from_kml_file(self):
+		
+		d = pq(filename=self.kml_file.path, parser="xml")
+
+		for placemark in d("Placemark").items():
+
+			# can there be multiple outer boundaries?
+			outer_boundary_text = placemark.find("outerBoundaryIs LinearRing coordinates").text()
+			inner_boundaries = placemark.find("innerBoundaryIs")
+
+			area = Area(
+				polygon=re.sub(r"\s+", ";", outer_boundary_text.strip()),
+				name=placemark.find(self.area_name_path).text(), # e.g. "Data[name='ntaname'] value"
+				external_identifier=placemark.find(self.area_external_identifier_path).text(), # e.g. "Data[name='ntacode'] value"
+				area_type=self.area_default_type,
+				boundary_type="OUTER"
+			)
+
+			area.mbr = area.mbr_from_polygon()
+			area.save()
+
+			for inner_boundary in inner_boundaries.items():
+				inner_boundary_text = inner_boundary.find("LinearRing coordinates").text()
+				inner_area = Area(
+					polygon=re.sub(r"\s+", ";", inner_boundary_text.strip()),
+					name="{0} Inner".format(area.name),
+					external_identifier=area.external_identifier,
+					area_type=self.area_default_type,
+					boundary_type="INNER",
+					outer_area=area
+				)
+
+				inner_area.mbr = inner_area.mbr_from_polygon()
+				inner_area.save()
+
+			self.areas.add(a)
 
 	@classmethod
 	def import_from_geojson(cls, file, *args, **kwargs):
@@ -126,8 +174,6 @@ class AreaMap(models.Model):
 
 			self.areas.add(a)
 
-		self.save()
-
 	def __str__(self):
 		return self.name
 
@@ -158,7 +204,7 @@ class KmlMap(models.Model):
 		lat_fieldname = kwargs.get("lat_field", "latitude")
 		client = Socrata(self.data_source, None)
 
-		areas = self.area_map.areas.all()
+		areas = self.area_map.areas.filter(boundary_type="OUTER")
 
 		area_bins = [dict(
 				area=area,
@@ -187,16 +233,22 @@ class KmlMap(models.Model):
 			for row in data:
 
 				try:
-					lat = float(row[lat_fieldname])
-					lng = float(row[lng_fieldname])
+					lat_value = row[lat_fieldname]
+					lng_value = row[lng_fieldname]
+					if isinstance(lat_value, dict) and lat_value.get("type", "") == "Point":
+						coords = lat_value.get("coordinates")
+						lng = float(coords[0])
+						lat = float(coords[1])
+					else:
+						lng = float(lng_value)
+						lat = float(lat_value)
+
+					for ab in area_bins:
+						if ab["area"].contains_point(lng, lat, polygon_list=ab["polygon"]):
+							ab["count"] += 1
+							break
 				except:
 					without_coords += 1
-
-				for ab in area_bins:
-
-					if ab["area"].contains_point(lng, lat, polygon_list=ab["polygon"]):
-						ab["count"] += 1
-						break
 
 			offset += LIMIT
 
@@ -205,6 +257,8 @@ class KmlMap(models.Model):
 		counts = [ab["count"] for ab in area_bins]
 		min_count = min(counts)
 		max_count = max(counts)
+
+		print(counts)
 
 		for ab in area_bins:
 			ab["height"] = kml_height_from_value_range(ab["count"], min_count, max_count)

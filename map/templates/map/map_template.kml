@@ -42,10 +42,6 @@
               <color>00000000</color>
               <width>0.000000</width>
             </LineStyle>
-            <PolyStyle>
-              <color>af0070ff</color>
-              <outline>1</outline>
-            </PolyStyle>
         </Style>
     </Document>
 </kml>

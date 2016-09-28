@@ -9,7 +9,7 @@ def kml_hex_color_from_value_range(value, the_min, the_max):
 	green = "{:02x}".format( int(half_norm_range_size - abs(norm_value - half_norm_range_size)) )
 	red   = "{:02x}".format( int(max(norm_value - half_norm_range_size, 0)) )
 
-	opacity = "af"
+	opacity = "ee"
 
 	return "{oo}{bb}{gg}{rr}".format(oo=opacity, bb=blue, gg=green, rr=red)
 
