@@ -17,19 +17,32 @@
                         <outline>1</outline>
                     </PolyStyle>
                 </Style>
-                <Polygon>
-                  <extrude>1</extrude>
-                  <altitudeMode>relativeToGround</altitudeMode>
-                  <outerBoundaryIs>
-                    <LinearRing>
-                        <coordinates>
-                            {% for point in area_bin.polygon %}
-                            {{point.0}},{{point.1}},{{area_bin.height}}
-                            {% endfor %}
-                        </coordinates>
-                    </LinearRing>
-                  </outerBoundaryIs>
-                </Polygon>
+                <MultiGeometry>
+                {% for polygon in area_bin.polygons %}
+                    <Polygon>
+                      <extrude>1</extrude>
+                      <altitudeMode>relativeToGround</altitudeMode>
+                      <outerBoundaryIs>
+                        <LinearRing>
+                            <coordinates>
+                                {% for point in polygon.outer %}{{point.0}},{{point.1}},{{area_bin.height}}
+                                {% endfor %}
+                            </coordinates>
+                        </LinearRing>
+                      </outerBoundaryIs>
+                      {% for inner in polygon.inner %}
+                      <innerBoundaryIs>
+                        <LinearRing>
+                            <coordinates>
+                                {% for point in inner.polygon %}{{point.0}},{{point.1}},{{area_bin.height}}
+                                {% endfor %}
+                            </coordinates>
+                        </LinearRing>
+                      </innerBoundaryIs>
+                      {% endfor %}
+                    </Polygon>
+                {% endfor %}
+                </MultiGeometry>
             </Placemark>
             {% endfor %}
         </Folder>
