@@ -4,5 +4,5 @@ from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
-    url(r'^(|/)$', TemplateView.as_view(template_name='map/index.html'), name='index'),
+    url(r'^(|/)$', views.KmlViewerView.as_view(), name='index'),
 ]
