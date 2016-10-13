@@ -92,3 +92,4 @@ settings.py
 /media/
 /static/
 *.ipynb
+/instructions.txt
