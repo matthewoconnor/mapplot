@@ -237,11 +237,14 @@ class KmlMap(models.Model):
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
 
-    def kml_mapplot_from_soda_dataset(self, *args, **kwargs):
-        
+    def area_bins_from_soda_dataset(self, *args, **kwargs):
+        limit = kwargs.get("limit", 1000)
+        offset = kwargs.get("offset", 0)
+        iterations = kwargs.get("iterations", None)
         search_kwargs = kwargs.get("search_kwargs", dict())
         lng_fieldname = kwargs.get("lng_field", "longitude")
         lat_fieldname = kwargs.get("lat_field", "latitude")
+
         client = Socrata(self.data_source, None)
 
         areas = self.area_map.areas.filter(
@@ -254,16 +257,16 @@ class KmlMap(models.Model):
                 count=0,
             ) for area in areas]
 
-        LIMIT = 5000
-        offset = 0
-        without_coords = 0
+        i = 0
 
-        while True and offset < 20000:
+        while iterations is None or i < iterations:
+
+            i += 1
 
             data = client.get(
                 self.dataset_identifier, 
                 content_type="json", 
-                limit=LIMIT, 
+                limit=limit, 
                 offset=offset, **search_kwargs)
 
             if not data:
@@ -292,21 +295,18 @@ class KmlMap(models.Model):
                 except:
                     without_coords += 1
 
-            offset += LIMIT
+            offset += limit
 
-        print("without coordinates: " + str(without_coords))
+        return area_bins
 
+    def save_kmlfile_from_area_bins(self, area_bins):
         counts = [ab["count"] for ab in area_bins]
         min_count = min(counts)
         max_count = max(counts)
 
-        print(counts)
-
         for ab in area_bins:
             ab["height"] = kml_height_from_value_range(ab["count"], min_count, max_count)
             ab["color"] = kml_hex_color_from_value_range(ab["count"], min_count, max_count)
-
-        print("rendering file...")
 
         kml_string = render_to_string("map/map_template.kml", dict(
             kml_map=self,
@@ -316,6 +316,10 @@ class KmlMap(models.Model):
         self.kml_file.save("{0} {1}.kml".format(self.name, self.id), ContentFile(kml_string))
         
         return self.kml_file.path
+
+    def kml_mapplot_from_soda_dataset(self, *args, **kwargs):
+        area_bins = self.area_bins_from_soda_dataset(*args, **kwargs)
+        return self.save_kmlfile_from_area_bins(area_bins)
 
     def __str__(self):
         return self.name
