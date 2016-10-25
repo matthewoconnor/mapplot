@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, FormView
 
 from .models import KmlMap
+from .forms import KmlmapForm
 
 
 class KmlViewerView(TemplateView):
@@ -12,3 +13,8 @@ class KmlViewerView(TemplateView):
 	def get(self, request, *args, **kwargs):
 		self.kmlmaps = KmlMap.objects.all()
 		return super().get(request, *args, **kwargs)
+
+class KmlmapEdit(FormView):
+
+	template_name = ""
+	form_class = KmlmapForm

@@ -12,7 +12,14 @@ def get_kmlmap_areabins(kmlmap, options=dict()):
 
 @shared_task(name="merge_area_bins", serializer=DJANGO_CEREAL_PICKLE)
 def merge_area_bins(area_bins, kmlmap):
-	return kmlmap.area_bins_from_soda_dataset(**options)
+	merged_bins = []
+	for area_bin in area_bins:
+		merged_bin = next((ab for ab in merged_bins if ab["area"] == area_bin["area"]), None)
+		if not merged_bin:
+			merged_bins.append(area_bin.copy())
+		else:
+			merged_bin["count"] += area_bin["count"]
+	return merged_bins
 
 @shared_task(name="generate_kmlmap", serializer=DJANGO_CEREAL_PICKLE)
 def generate_kmlmap(kmlmap, search_options=dict()):
