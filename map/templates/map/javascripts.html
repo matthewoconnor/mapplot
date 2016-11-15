@@ -1,0 +1,9 @@
+{% load compress %}
+
+{% compress js %}
+<script type="text/javascript" src="{% static 'map/js/maps.config.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/maps.routes.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/kmlfilemanager/kmlfilemanager.module.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/kmlfilemanager/services/kmlfilemanager.service.config.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/kmlfilemanager/controllers/create.controller.js' %}"></script>
+{% endcompress %}

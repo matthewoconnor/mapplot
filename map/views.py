@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView, FormView
+from django.views.generic import View, TemplateView, FormView
+from django.http import JsonResponse
 
 from .models import KmlMap
 from .forms import KmlmapForm
@@ -16,5 +17,11 @@ class KmlViewerView(TemplateView):
 
 class KmlmapEdit(FormView):
 
-	template_name = ""
+	template_name = "map/kmlmap-import-dataset-form.html"
 	form_class = KmlmapForm
+
+class KmlMapListJson(View):
+
+	def get(self, request, *args, **kwargs):
+		kmlmaps = KmlMap.objects.all();
+		return JsonResponse( dict(kmlfiles=[dict(title=km.name, source=km.kml_file.url) for km in kmlmaps]) )

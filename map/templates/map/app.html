@@ -1,0 +1,91 @@
+{% load compress %}
+{% load static %}
+
+<!doctype html>
+<html>
+	<body>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		
+		<title>Maps</title>
+
+		<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.css">
+		<link rel="stylesheet" type="text/css" href="{% static 'lib/cesium/Widgets/widgets.css' %}" />
+
+		{% compress css %}
+		<link type="text/less" rel="stylesheet" href="{% static 'map/css/material-theme-1/style.less' %}">
+		{% endcompress %}
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
+	  	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-aria.min.js"></script>
+	 	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-messages.min.js"></script>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+
+		<script src="{% static 'lib/cesium/Cesium.js' %}"></script>
+		<script src="{% static 'map/js/app.js' %}"></script>
+
+	<body>
+		<div ng-app="MapApplication">
+
+			<div ng-controller="MapApplicationController" layout="column" style="height:100vh" ng-cloak>
+
+			  <section layout="row" flex>
+
+				
+			    <md-sidenav
+			        class="md-sidenav-left"
+			        md-component-id="left"
+			        md-is-locked-open="$mdMedia('gt-sm')"
+			        md-whiteframe="4"
+			        ng-disabled="isLoading">
+
+			        <div ng-controller="KmlMapNavigationController">
+
+				      <md-toolbar class="md-theme-indigo">
+				      	<div class="md-toolbar-tools">
+				      		<h2 class="">Kml Maps</h2>
+				      		<span flex></span>
+				      		<md-progress-circular ng-disabled="!isLoading" class="md-hue-2" md-diameter="20px"></md-progress-circular>
+					        <md-button ng-click="close()" class="md-raised" hide-gt-sm>
+					          close
+					        </md-button>
+				      	</div>
+				      </md-toolbar>
+
+				      <md-content>
+				      	<md-list flex>
+				      		<md-subheader class="md-no-sticky" layout-padding>Select a kml map to view it on the map.</md-subheader>
+				      		<md-list-item 
+				      			ng-controller="KmlMapController" 
+				      			ng-repeat="kmlfile in kmlfiles" 
+				      			ng-click="showKmlData()"
+				      			ng-disabled="isLoading"
+				      			layout-padding>
+				      			<div class="md-list-item-text" layout="column">
+				      				<h6>{$ kmlfile.title $}</h3>
+				      			</div>
+				      		</md-list-item>
+				      	</md-list>
+				      </md-content>
+
+			     	</div>
+
+			    </md-sidenav>
+			    
+
+			    <md-content flex>
+			      <div layout="column" id="worldmap"></div>
+			    </md-content>
+
+			  </section>
+
+			</div>
+
+		</div>	
+	</body>
+</html>
