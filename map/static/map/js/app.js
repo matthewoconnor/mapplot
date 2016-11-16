@@ -5,13 +5,15 @@
 		.config(function($interpolateProvider) {
 		    $interpolateProvider.startSymbol('{$');
 		    $interpolateProvider.endSymbol('$}');
+
+		    // $httpProvider
+		    // $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+		    // $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 		})
 		.controller("MapApplicationController", function ($scope, $http, $mdSidenav, $log) {
 
 			$scope.cesium = new Cesium.Viewer("worldmap");
-			$scope.kmlfiles  = []
-			$scope.isLoading = false;
-
+		
 			$scope.fetchData = function(){
 				$scope.isLoading = true;
 				$log.debug("fetchingData");
@@ -25,6 +27,22 @@
 			$scope.fetchData();
 
 		  })
+		// .controller("KmlMapList", function($scope, $http) {
+
+		// 	$scope.kmlfiles  = []
+		// 	$scope.isLoading = false;
+
+		// 	$scope.fetchData = function(){
+		// 		$scope.isLoading = true;
+		// 		$log.debug("fetchingData");
+		// 		$http.get("/kmlmap/list/json/")
+		// 			.then(function(response){
+		// 				$scope.kmlfiles = response.data.kmlfiles;
+		// 				$scope.isLoading = false;
+		// 			});
+		// 	}
+		// 	$scope.fetchData();
+		// })
 	  	.controller('KmlMapNavigationController', function ($scope, $timeout, $mdSidenav, $log) {
 
 		    $scope.close = function () {
@@ -35,7 +53,7 @@
 		    };
 
 
-		  })
+		})
 	  	.controller('KmlMapController', function($scope, $log) {
 	  		$scope.kmldata = null;
 	  		$scope.isLoading = false;

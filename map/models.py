@@ -9,6 +9,7 @@ from django.db import models
 from django.utils import timezone
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
+from django.conf import settings
 
 from .utils import kml_hex_color_from_value_range, kml_height_from_value_range
 
@@ -27,6 +28,7 @@ BOUNDARY_TYPES = (
     ("OUTER", "Outer Boundary"),
     ("INNER", "Inner Boundary")
 )
+
 
 class Area(models.Model):
     """
@@ -237,6 +239,13 @@ class KmlMap(models.Model):
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
 
+    def get_socrata_client(self, *args, **kwargs):
+        socrata_credentials = settings.DATA_PORTAL_KEYS.get("socrata", None)
+        if socrata_credentials:
+            return Socrata(self.data_source, socrata_credentials["app_token"], username=socrata_credentials["username"], password=socrata_credentials["password"])
+        else:
+            return Socrata(self.data_source, None)
+
     def area_bins_from_soda_dataset(self, *args, **kwargs):
         limit = kwargs.get("limit", 1000)
         offset = kwargs.get("offset", 0)
@@ -245,7 +254,7 @@ class KmlMap(models.Model):
         lng_fieldname = kwargs.get("lng_field", "longitude")
         lat_fieldname = kwargs.get("lat_field", "latitude")
 
-        client = Socrata(self.data_source, None)
+        client = self.get_socrata_client()
 
         areas = self.area_map.areas.filter(
             is_primary=True
@@ -258,6 +267,7 @@ class KmlMap(models.Model):
             ) for area in areas]
 
         i = 0
+        without_coords = 0
 
         while iterations is None or i < iterations:
 
@@ -273,7 +283,7 @@ class KmlMap(models.Model):
                 print("done with data")
                 break
             else:
-                print("data {0} to {1}".format(offset, offset + 5000))
+                print("data {0} to {1}".format(offset, offset + limit))
 
             for row in data:
 

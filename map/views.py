@@ -20,6 +20,12 @@ class KmlmapEdit(FormView):
 	template_name = "map/kmlmap-import-dataset-form.html"
 	form_class = KmlmapForm
 
+
+
+class KmlmapEditViewPart(FormView):
+	template_name = "map/app/kmlmap-edit.html"
+	form_class = KmlmapForm
+
 class KmlMapListJson(View):
 
 	def get(self, request, *args, **kwargs):
