@@ -1,0 +1,55 @@
+<h2>Create Kml File Form</h2>
+
+<form>
+	{% csrf_token %}
+	
+	<md-content layout-gt-sm="row" layout-padding>
+		<md-input-container flex-gt-sm>
+			<label>Name of Kml Map</label>
+			<input name="name" ng-model="kmlmap.name">
+		</md-input-container>
+	</md-content>
+
+	<md-content layout-gt-sm="row" layout-padding>
+		<md-input-container flex-gt-sm>
+			<label>SODA Data Source</label>
+			<input name="data_source" ng-model="kmlmap.data_source" placeholder="(e.g. data.cityofchicago.org)" />
+		</md-input-container>
+		<md-input-container flex-gt-sm>
+			<label>SODA Dataset Identifier</label>
+			<input name="dataset_identifier" ng-model="kmlmap.dataset_identifier" />
+		</md-input-container>
+	</md-content>
+
+	<md-content layout-gt-sm="row" layout-padding>
+		<md-input-container flex-gt-sm>
+			<label>Area Map</label>
+			<md-autocomplete 
+				md-search-text="areaMapAutocomplete.searchText" 
+				md-items="item in areaMapAutocomplete.getMatches(searchText)" 
+				md-selected-item-change="areaMapAutocomplete.selectedItemChanged(item)"
+				md-min-length="0"
+				md-item-text="item.name"
+				md-selected-item="kmlmap.area_map" >
+			  <span md-highlight-text="searchText">{$ item.name $}</span>
+			</md-autocomplete>
+			<input type="hidden" name="area_map" ng-model="kmlmap.area_map"/>
+		</md-input-container>
+	</md-content>
+
+	<md-content layout-gt-sm="row" layout-padding>
+		<md-input-container flex-gt-sm>
+			<label>SODA Search String</label>
+			<input name="search_kwargs" ng-model="kmlmap.search_kwargs" />
+		</md-input-container>
+		<md-input-container flex-gt-sm>
+			<label>Limit (number of results handled in one request)</label>
+			<input name="limit" ng-model="kmlmap.limit" />
+		</md-input-container>
+	</md-content>
+
+	<md-content layout="row" layout-padding layout-align="center center" layout-align-sm="end center">
+		<md-button type="submit" class="md-raised md-primary">Submit</md-button>
+	</md-content>
+	
+</form>

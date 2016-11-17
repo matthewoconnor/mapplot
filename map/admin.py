@@ -1,9 +1,10 @@
 import math
-from celery import group
+from celery import group, chord
 
 from django.contrib import admin, messages
 
-from .tasks import get_kmlmap_areabins, merge_area_bins, generate_kmlmap
+from .tasks import get_kmlmap_areabins, merge_area_bins, generate_kmlmap, \
+	get_kmlmap_areabins_2, merge_area_bins_2
 from .models import Area, AreaMap, KmlMap
 
 
@@ -35,10 +36,14 @@ class KmlMapAdmin(admin.ModelAdmin):
 			limit = min(limit, math.ceil( int(dataset_count)/tasks) )
 			iterations = math.ceil(int(dataset_count) / (tasks * limit))
 
-			get_bins_group = [get_kmlmap_areabins.s(kmlmap, options=dict(limit=limit, iterations=iterations, offset=i*iterations*limit)) for i in range(tasks)]
+			get_bins_group = [get_kmlmap_areabins_2.si(kmlmap, **dict(limit=limit, iterations=iterations, offset=i*iterations*limit)) for i in range(tasks)]
 
-			workflow = (group(get_bins_group) | merge_area_bins.s(kmlmap) | generate_kmlmap.s(kmlmap) )
-			workflow()
+			workflow = chord(get_bins_group, merge_area_bins_2.s(kmlmap))
+			x = workflow.apply_async()
+
+			print("##############")
+			print(x.task_id)
+			print([y.task_id for y in x.parent.children])
 
 			messages.success(request, "Started data import for %s" % kmlmap.name)
 
