@@ -3,6 +3,7 @@ from django.views.generic import View, TemplateView, FormView
 from django.http import JsonResponse
 
 from .models import KmlMap, AreaMap
+from .utils import start_kmlmap_task
 from .tasks import poll_task_progress
 from .forms import KmlmapForm
 
@@ -27,6 +28,29 @@ class KmlmapCreateViewPart(FormView):
 	template_name = "map/app/kmlmap-edit.html"
 	form_class = KmlmapForm
 
+	def form_valid(self, form):
+		kmlmap = form.save()
+
+		task_kwargs = dict(
+			search_kwargs=form.cleaned_data.get("search_kwargs"),
+			limit=form.cleaned_data.get("limit"),
+			categorize_method=form.cleaned_data.get("categorize_method"), # latlng, point, match
+			lat_field=form.cleaned_data.get("lat_field"),
+			lng_field=form.cleaned_data.get("lng_field"),
+			point_field=form.cleaned_data.get("point_field"),
+			match_soda_field=form.cleaned_data.get("match_soda_field"),
+			match_area_field=form.cleaned_data.get("match_area_field")
+		)
+
+		print(task_kwargs)
+
+		task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
+
+		response_context = dict(success=True, kmlmap=kmlmap, task_ids=task_ids)
+
+		return JsonResponse(response_context)
+
+
 class KmlMapListJson(View):
 
 	def get(self, request, *args, **kwargs):
@@ -47,10 +71,14 @@ class TaskProgressView(View):
 class KmlAreaMapAutocomplete(View):
 
 	def get(self, request, *args, **kwargs):
-		request.GET.get("query", None)
+		query = request.GET.get("query", None)
 		if query:
 			results = AreaMap.objects.filter(name__icontains=query).order_by("name").values("id", "name")
 		else:
 			results = []
-		context = dict(success=True, results=results, query=query)
+		context = dict(success=True, results=list(results), query=query)
 		return JsonResponse( context )
+
+
+
+

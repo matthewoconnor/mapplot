@@ -33,32 +33,65 @@
 	</head>
 	<body>
 		<div ng-app="MapApplication" ng-controller="MapApplicationController" style="height:100vh">
-			<div layout="column" id="worldmap"></div>
-			<md-tabs>
-				<md-tab label="Map Viewer">
-					<md-content flex>
-			    		
-				    </md-content>
-				</md-tab>
-				<md-tab label="Kml Maps">
-					<md-content ng-controller="KmlMapController" flex>
-						<md-list-item
-			      			ng-repeat="kmlfile in kmlfiles" 
-			      			ng-click="showKmlData()"
-			      			ng-disabled="isLoading"
-			      			layout-padding>
-			      			<div class="md-list-item-text" layout="column">
-			      				<h3>{$ kmlfile.title $}</h3>
-			      			</div>
-			      		</md-list-item>
+
+			<section layout="row" flex style="height:100%;">
+				<md-sidenav 
+			        class="md-sidenav-left"
+			        md-component-id="left"
+			        md-is-locked-open="$mdMedia('gt-sm')"
+			        md-whiteframe="4"
+			        layout-fill>
+
+		        	<md-content flex>
+		        		<div class="nav-custom-list" flex layout-padding>
+							<div
+				      			ng-repeat="kmlfile in kmlfiles" 
+				      			ng-controller="KmlMapController"
+				      			ng-click="stopPropagation($event)">
+				      			<div layout="column" flex>
+				      				<div layout="row">
+					      				<div flex>
+					      					<h4>{$ kmlfile.title $}</h4>
+					      				</div>
+					      				<div>
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="showKmlData()" ng-show="!isLoaded" class="md-raised md-mini">View</md-button>
+				      						<md-switch ng-show="isLoaded" class="md-secondary" ng-model="isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(isVisible)">{$ isVisible ? 'Visible' : 'Hidden' $}</md-switch>
+					      				</div>
+					      			</div>
+					      			<div layout="row">
+					      				<md-progress-linear ng-show="isLoading" md-mode="indeterminate"></md-progress-linear>
+					      			</div>
+				      			</div>
+				      		</div>
+				      	</div>
 		      		</md-content>
-				</md-tab>
-				<md-tab label="Create Kml Map">
-					<md-content ng-controller="KmlMapCreateController" flex>
-					{% include 'map/app/kmlmap-form.html' %}
-					</md-content>
-				</md-tab>
-			</md-tabs>
+
+			    </md-sidenav>
+
+				<div layout="column" flex>
+
+				 	<md-toolbar>
+				 		<div class="md-toolbar-tools">
+				 			<md-button ng-click="toggleLeftMenu()" hide-gt-sm aria-label="Toggle Menu">Menu</md-button>
+				 			<h1><span>Kml File App</span></h1>
+				 			<span flex></span>
+				 			<md-button ng-click="navigate('map')" aria-label="Map View">Map</md-button>
+				 			<md-button ng-click="navigate('create')" aria-label="Toggle Menu">Create</md-button>
+				 		</div>
+				 	</md-toolbar>
+
+				 	<md-content layout="column" flex ng-show="view == 'map'">
+				 		<div layout="column" id="worldmap"></div>
+				 	</md-content>
+
+				 	<div layout="column" flex ng-show="view == 'create'">
+						<md-content ng-controller="KmlMapCreateController" flex layout-padding>
+						{% include 'map/app/kmlmap-form.html' %}
+						</md-content>
+					</div>
+
+				 </div>
+			</section>
 
 		</div>	
 	</body>

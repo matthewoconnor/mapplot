@@ -1,6 +1,6 @@
-<h2>Create Kml File Form</h2>
+<h2>Create Kml File</h2>
 
-<form>
+<form ng-submit="submitForm()">
 	{% csrf_token %}
 	
 	<md-content layout-gt-sm="row" layout-padding>
@@ -26,15 +26,15 @@
 			<label>Area Map</label>
 			<md-autocomplete 
 				md-search-text="areaMapAutocomplete.searchText" 
-				md-items="item in areaMapAutocomplete.getMatches(searchText)" 
+				md-items="item in areaMapAutocomplete.getMatches(areaMapAutocomplete.searchText)" 
 				md-selected-item-change="areaMapAutocomplete.selectedItemChanged(item)"
 				md-min-length="0"
 				md-item-text="item.name"
 				md-selected-item="kmlmap.area_map" >
-			  <span md-highlight-text="searchText">{$ item.name $}</span>
+			  <span md-highlight-text="areaMapAutocomplete.searchText" md-highlight-flags="^i">{$ item.name $}</span>
 			</md-autocomplete>
-			<input type="hidden" name="area_map" ng-model="kmlmap.area_map"/>
 		</md-input-container>
+		<input type="hidden" name="area_map" ng-model="kmlmap.area_map.id"/>
 	</md-content>
 
 	<md-content layout-gt-sm="row" layout-padding>

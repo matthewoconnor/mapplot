@@ -7,7 +7,6 @@ urlpatterns = [
     url(r'^(|/)$', views.KmlViewerView.as_view(), name='index'),
     url(r'^kmlmap/create/$', views.KmlmapEdit.as_view(), name="kmlmap_create"),
 
-
     # app urls
     url(r'^app/$', TemplateView.as_view(template_name="map/app.html"), name="app"),
     url(r'^app/kmlmap/create/$', views.KmlMapListJson.as_view(), name="kmlmap_edit"),

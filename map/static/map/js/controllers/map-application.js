@@ -5,6 +5,9 @@
 			$scope.cesium = new Cesium.Viewer("worldmap");
 			$scope.kmlfiles = [];
 			$scope.isLoading = false;
+
+			$scope.toggleLeftMenu = buildToggler('left');
+			$scope.view = "map";
 		
 			$scope.fetchData = function(){
 				$scope.isLoading = true;
@@ -16,8 +19,28 @@
 					});
 			}
 
+			$scope.navigate = function(viewname) {
+				$scope.view = viewname;
+			};
 
-			$scope.$on($viewControllerLoaded)
+			$scope.stopPropagation=function(ev){
+		        // don't delete this method it is required for multiple checkbox in list item.
+              	ev.stopPropagation();
+		    };
+
+			function buildToggler(navID) {
+		      return function() {
+		        // Component lookup should always be available since we are not using `ng-if`
+		        $mdSidenav(navID)
+		          .toggle()
+		          .then(function () {
+		            $log.debug("toggle " + navID + " is done");
+		          });
+		      }
+		    };
+
+
+
 			$scope.fetchData();
 		});
 })();

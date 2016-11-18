@@ -27,7 +27,56 @@
 </head>
 <body ng-app="KmpMapEditor">
 	<div ng-controller="KmlMapForm" layout="column" class="md-inline-form">
-		
+		<form ng-submit>
+			{% csrf_token %}
+			
+			<md-content layout-gt-sm="row" layout-padding>
+				<md-input-container flex-gt-sm>
+					{{form.name.label_tag}}
+					{{form.name}}
+				</md-input-container>
+			</md-content>
+
+			<md-content layout-gt-sm="row" layout-padding>
+				<md-input-container flex-gt-sm>
+					{{form.data_source.label_tag}}
+					{{form.data_source}}
+				</md-input-container>
+				<md-input-container flex-gt-sm>
+					{{form.dataset_identifier.label_tag}}
+					{{form.dataset_identifier}}
+				</md-input-container>
+			</md-content>
+
+			<md-content layout-gt-sm="row" layout-padding>
+				<md-input-container flex-gt-sm>
+					{{form.area_map.label_tag}}
+					<md-select ng-model="kmlmap.area_map">
+					{% for x,y in form.fields.area_map.choices %}
+					    <md-option value="{{ x }}"{% if form.fields.area_map.value == x %} selected{% endif %}>
+					    {{ y }}
+					    </md-option>
+					{% endfor %}
+					</md-select>
+				</md-input-container>
+			</md-content>
+
+			<md-content layout-gt-sm="row" layout-padding>
+				<md-input-container flex-gt-sm>
+					{{form.search_kwargs.label_tag}}
+					{{form.search_kwargs}}
+				</md-input-container>
+				<md-input-container flex-gt-sm>
+					{{form.limit.label_tag}}
+					{{form.limit}}
+				</md-input-container>
+			</md-content>
+
+			<md-content layout="row" layout-padding layout-align="center center" layout-align-sm="end center">
+				<md-button type="submit" class="md-raised md-primary">Submit</md-button>
+			</md-content>
+			
+		</form>
 	</div>
 </body>
 </html>

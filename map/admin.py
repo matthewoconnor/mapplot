@@ -3,6 +3,7 @@ from celery import group, chord
 
 from django.contrib import admin, messages
 
+from .utils import start_kmlmap_task
 from .tasks import get_kmlmap_areabins, merge_area_bins, generate_kmlmap, \
 	get_kmlmap_areabins_2, merge_area_bins_2
 from .models import Area, AreaMap, KmlMap
@@ -27,25 +28,10 @@ class KmlMapAdmin(admin.ModelAdmin):
 	def generate_kmlmap_async(self, request, queryset):
 
 		for kmlmap in queryset:
-
-			client = kmlmap.get_socrata_client()
-			limit = 1000
-			tasks = 4
-
-			dataset_count = client.get(kmlmap.dataset_identifier, exclude_system_fields=False, select="count(:id)")[0].get("count_id")
-			limit = min(limit, math.ceil( int(dataset_count)/tasks) )
-			iterations = math.ceil(int(dataset_count) / (tasks * limit))
-
-			get_bins_group = [get_kmlmap_areabins_2.si(kmlmap, **dict(limit=limit, iterations=iterations, offset=i*iterations*limit)) for i in range(tasks)]
-
-			workflow = chord(get_bins_group, merge_area_bins_2.s(kmlmap))
-			x = workflow.apply_async()
-
-			print("##############")
-			print(x.task_id)
-			print([y.task_id for y in x.parent.children])
-
+			task_kwargs = dict()
+			task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
 			messages.success(request, "Started data import for %s" % kmlmap.name)
+			print(task_ids)
 
 
 admin.site.register(Area, AreaAdmin)
