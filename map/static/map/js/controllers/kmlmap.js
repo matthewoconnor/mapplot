@@ -1,6 +1,6 @@
 (function(){
 	angular.module("MapApplication")
-		.controller('KmlMapController', function($scope, $log) {
+		.controller('KmlMapController', function($scope, $log, $http, $interval) {
 
 	  		$scope.kmldata = null;
 
@@ -9,7 +9,7 @@
 	  		$scope.isVisible = false;
 
 	  		$scope.watchingProgress = false;
-	  		$scope.progressValue = 0.0; 
+	  		$scope.progressValue = 12.0;
 
 	  		$scope.showKmlData = function(){
 	  			$scope.isLoading = true;
@@ -60,18 +60,23 @@
 
 	  		$scope.watchTaskProgress = function(task_ids_string) {
 
-	  			var taskwatcher = setInterval(function(){
+	  			var taskwatcher = $interval(function(){
 	  				$http.get("/app/task/progress/", {"params":{"task_ids":task_ids_string}}).then(function(response){
 		  				if(response.data.status == "PROGRESS") {
-		  					$scope.progressValue = float(response.data.complete) * 100;
+		  					$scope.progressValue = response.data.complete * 100.0;
 		  				}else{
-		  					clearInterval(taskwatcher);
+		  					$interval.cancel(taskwatcher);
 		  					$scope.progressValue = 100;
 		  					$scope.watchingProgress = false;
 		  				}
 		  			});
 	  			}, 1000);
 
+	  		}
+
+	  		if($scope.kmlfile.task_ids) {
+	  			$scope.watchingProgress = true;
+	  			$scope.watchTaskProgress($scope.kmlfile.task_ids.join(","));
 	  		}
 
 	  	});

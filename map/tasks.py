@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from celery import task, shared_task
+from celery.result import AsyncResult
 from celery.utils.log import get_task_logger
 from django_cereal.pickle import DJANGO_CEREAL_PICKLE
 
@@ -41,7 +42,7 @@ def tsum(numbers):
 
 
 # TESTING PROGRESS STATUS
-@shared_task(name="get_kmlmap_areabins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
+@shared_task(name="get_kmlmap_areabins_2", bind=True, serializer=DJANGO_CEREAL_PICKLE)
 def get_kmlmap_areabins_2(self, kmlmap, **kwargs):
     limit = kwargs.get("limit", 1000)
     offset = kwargs.get("offset", 0)
@@ -109,17 +110,20 @@ def get_kmlmap_areabins_2(self, kmlmap, **kwargs):
 
     return area_bins
 
-@shared_task(name="merge_area_bins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
+@shared_task(name="merge_area_bins_2", bind=True, serializer=DJANGO_CEREAL_PICKLE)
 def merge_area_bins_2(self, area_bins_list, kmlmap):
+    area_bins = [item for sublist in area_bins_list for item in sublist]
+    TOTAL = len(area_bins)
     merged_bins = []
-    TOTAL = len(item for sublist in area_bins_list for item in sublist)
-    for i, area_bin in enumerate():
+
+    for i, area_bin in enumerate(area_bins):
         self.update_state(state='PROGRESS', meta={'current': i, 'total': TOTAL}) # tracking progress
         merged_bin = next((ab for ab in merged_bins if ab["area"] == area_bin["area"]), None)
         if not merged_bin:
             merged_bins.append(area_bin)
         else:
             merged_bin["count"] += area_bin["count"]
+    logger.info("ABOUT TO SAVE FILE!!!")
     return kmlmap.save_kmlfile_from_area_bins(merged_bins)
 
 def poll_task_progress(task_id_list):
@@ -134,6 +138,8 @@ def poll_task_progress(task_id_list):
         try:
             task = AsyncResult(task_id)
             state = task.state
+
+            print("TASK STATE", state)
 
             if state in ["SUCCESS", "FAILURE", "REVOKED"]:
                 has_started = True

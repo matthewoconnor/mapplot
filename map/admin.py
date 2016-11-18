@@ -1,11 +1,6 @@
-import math
-from celery import group, chord
-
 from django.contrib import admin, messages
 
 from .utils import start_kmlmap_task
-from .tasks import get_kmlmap_areabins, merge_area_bins, generate_kmlmap, \
-	get_kmlmap_areabins_2, merge_area_bins_2
 from .models import Area, AreaMap, KmlMap
 
 

@@ -25,14 +25,20 @@ class KmlmapEdit(FormView):
 # create kml area map
 
 class KmlmapCreateViewPart(FormView):
-	template_name = "map/app/kmlmap-edit.html"
+	template_name = "map/app/kmlmap-form.html"
 	form_class = KmlmapForm
+
+	def post(self, request, *args, **kwargs):
+		print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		for key, value in request.POST.items():
+			print(key, value)
+		return super().post(request, *args, **kwargs)
 
 	def form_valid(self, form):
 		kmlmap = form.save()
 
 		task_kwargs = dict(
-			search_kwargs=form.cleaned_data.get("search_kwargs"),
+			where=form.cleaned_data.get("where"),
 			limit=form.cleaned_data.get("limit"),
 			categorize_method=form.cleaned_data.get("categorize_method"), # latlng, point, match
 			lat_field=form.cleaned_data.get("lat_field"),
@@ -42,14 +48,22 @@ class KmlmapCreateViewPart(FormView):
 			match_area_field=form.cleaned_data.get("match_area_field")
 		)
 
+		print("")
+		print(kmlmap.area_map)
+		print("")
 		print(task_kwargs)
+		print("")
 
 		task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
 
-		response_context = dict(success=True, kmlmap=kmlmap, task_ids=task_ids)
+		response_context = dict(success=True, kmlmap=dict(title=kmlmap.name), task_ids=task_ids)
 
 		return JsonResponse(response_context)
 
+	def form_invalid(self, form):
+		#print(form.__dir__())
+		response_context = dict(success=False, messages=form.errors)
+		return JsonResponse(response_context)
 
 class KmlMapListJson(View):
 
@@ -65,6 +79,7 @@ class TaskProgressView(View):
 	def get(self, request, *args, **kwargs):
 		task_ids = request.GET.get("task_ids", None)
 		task_id_list = task_ids.split(",") if task_ids else []
+		print(task_id_list)
 		context = poll_task_progress(task_id_list)
 		return JsonResponse( context )
 

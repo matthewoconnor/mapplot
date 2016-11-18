@@ -24,11 +24,19 @@
           console.log("SUBMITTED FORM");
 
           var submitData = angular.copy($scope.kmlmap);
-          submitData.area_map = $scope.kmlmap.id;
+          submitData.area_map = $scope.kmlmap.area_map.id;
+          submitData = $.param(submitData);
 
-          $http.post("/app/kmlmap/create/", {"params":submitData}).then(function(response){
-            if(response.data.kmlmap){
+          var config = {
+              headers : {
+                  'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+              }
+          }
+
+          $http.post("/app/kmlmap/create/", submitData, config).then(function(response){
+            if(response.data.success && response.data.kmlmap){
               var newkmlmap = response.data.kmlmap;
+              newkmlmap.task_ids = response.data.task_ids;
               $scope.kmlfiles.unshift(newkmlmap);
               $scope.kmlmap = {};
             }

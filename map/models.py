@@ -324,7 +324,9 @@ class KmlMap(models.Model):
         ))
 
         self.kml_file.save("{0} {1}.kml".format(self.name, self.id), ContentFile(kml_string))
-        
+
+        print("SAVED FILE")
+
         return self.kml_file.path
 
     def kml_mapplot_from_soda_dataset(self, *args, **kwargs):
@@ -338,6 +340,7 @@ class KmlMap(models.Model):
         now = timezone.now()
         self.created_time = self.created_time or timezone.now()
         self.updated_time = now
+        self.user_id = 1 # REMOVE WHEN ABILITY FOR MORE USERS
         return super().save(*args, **kwargs)
 
 
