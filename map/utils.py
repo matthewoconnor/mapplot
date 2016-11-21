@@ -43,14 +43,14 @@ def start_kmlmap_task(kmlmap, **kwargs):
 
 	search_kwargs = dict(where=where) if where else dict()
 
-	dataset_count = client.get(kmlmap.dataset_identifier, exclude_system_fields=False, select="count(:id)")[0].get("count_id", **search_kwargs)
+	dataset_count = client.get(kmlmap.dataset_identifier, exclude_system_fields=False, select="count(:id)", **search_kwargs)[0].get("count_id")
 	limit = min(limit, math.ceil( int(dataset_count)/tasks) )
 	iterations = math.ceil(int(dataset_count) / (tasks * limit))
 
 	get_bins_group = [get_kmlmap_areabins_2.si(kmlmap, **{**search_kwargs, **dict(limit=limit, iterations=iterations, offset=i*iterations*limit)} ) for i in range(tasks)]
 
 	workflow = chord(get_bins_group, merge_area_bins_2.s(kmlmap))
-	asyn_result = workflow.apply_async()
+	async_result = workflow.apply_async()
 
-	progress_task_ids = [ar.task_id for ar in asyn_result.parent.children]
+	progress_task_ids = [ar.task_id for ar in async_result.parent.children] + [async_result.task_id]
 	return progress_task_ids

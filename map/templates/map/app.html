@@ -54,13 +54,14 @@
 					      					<h4>{$ kmlfile.title $}</h4>
 					      				</div>
 					      				<div>
-					      					<md-button md-ink-ripple="#03A9F4" ng-click="showKmlData()" ng-show="!isLoaded" class="md-raised md-mini">View</md-button>
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="showKmlData()" ng-show="!isLoaded && kmlfile.source" class="md-raised md-mini">View</md-button>
 				      						<md-switch ng-show="isLoaded" class="md-secondary" ng-model="isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(isVisible)">{$ isVisible ? 'Visible' : 'Hidden' $}</md-switch>
 					      				</div>
 					      			</div>
 					      			<div layout="row">
 					      				<md-progress-linear ng-show="isLoading" md-mode="indeterminate"></md-progress-linear>
 					      				<md-progress-linear ng-show="watchingProgress" md-mode="determinate" value="{$ progressValue $}"></md-progress-linear>
+					      				<md-progress-linear ng-show="taskPending" md-mode="query"></md-progress-linear>
 					      			</div>
 				      			</div>
 				      		</div>

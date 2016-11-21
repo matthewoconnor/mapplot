@@ -56,7 +56,7 @@ class KmlmapCreateViewPart(FormView):
 
 		task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
 
-		response_context = dict(success=True, kmlmap=dict(title=kmlmap.name), task_ids=task_ids)
+		response_context = dict(success=True, kmlmap=dict(id=kmlmap.id, title=kmlmap.name), task_ids=task_ids)
 
 		return JsonResponse(response_context)
 
@@ -68,9 +68,14 @@ class KmlmapCreateViewPart(FormView):
 class KmlMapListJson(View):
 
 	def get(self, request, *args, **kwargs):
-		kmlmaps = KmlMap.objects.all();
+		filter_ids = request.GET.get("ids", None)
+		if filter_ids:
+			filter_id_list = filter_ids.split(",")
+			kmlmaps = KmlMap.objects.filter(id__in=filter_id_list)
+		else:
+			kmlmaps = KmlMap.objects.all(); 
 		context = dict(
-			kmlfiles=[dict(title=km.name, source=km.kml_file.url) for km in kmlmaps]
+			kmlfiles=[dict(id=km.id, title=km.name, source=km.get_file_url()) for km in kmlmaps]
 		)
 		return JsonResponse( context )
 

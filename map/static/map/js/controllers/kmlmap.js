@@ -9,6 +9,7 @@
 	  		$scope.isVisible = false;
 
 	  		$scope.watchingProgress = false;
+	  		$scope.taskPending = false;
 	  		$scope.progressValue = 12.0;
 
 	  		$scope.showKmlData = function(){
@@ -63,19 +64,42 @@
 	  			var taskwatcher = $interval(function(){
 	  				$http.get("/app/task/progress/", {"params":{"task_ids":task_ids_string}}).then(function(response){
 		  				if(response.data.status == "PROGRESS") {
+		  					$scope.watchingProgress = true;
+		  					$scope.taskPending = false;
 		  					$scope.progressValue = response.data.complete * 100.0;
+		  				}else if(response.data.status == "PENDING"){
+		  					$scope.taskPending = true;
+		  					$scope.watchingProgress = false
 		  				}else{
 		  					$interval.cancel(taskwatcher);
 		  					$scope.progressValue = 100;
+		  					$scope.taskPending = false;
 		  					$scope.watchingProgress = false;
+
+		  					// refetch at the end 
+		  					$scope.fetchKmlMap();
 		  				}
 		  			});
 	  			}, 1000);
 
 	  		}
 
+	  		$scope.fetchKmlMap = function() {
+
+	  			$scope.isLoading = true;
+
+	  			$http.get("/kmlmap/list/json/", {"params":{"ids":$scope.kmlfile.id}})
+					.then(function(response){
+						if(response.data.kmlfiles){
+							$scope.kmlfile = response.data.kmlfiles[0];	
+						}
+						$scope.isLoading = false;
+					});
+	  		}
+
+
+	  		// ON INIT
 	  		if($scope.kmlfile.task_ids) {
-	  			$scope.watchingProgress = true;
 	  			$scope.watchTaskProgress($scope.kmlfile.task_ids.join(","));
 	  		}
 

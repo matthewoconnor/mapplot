@@ -239,6 +239,12 @@ class KmlMap(models.Model):
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
 
+    def get_file_url(self):
+        try:
+            return self.kml_file.url
+        except:
+            return None
+
     def get_socrata_client(self, *args, **kwargs):
         socrata_credentials = settings.DATA_PORTAL_KEYS.get("socrata", None)
         if socrata_credentials:
