@@ -122,11 +122,24 @@ class AreaMap(models.Model):
 
     created_time = models.DateTimeField()
 
-    def import_areas_from_kml_file(self):
+    def import_areas_from_kml_file(self, *args, **kwargs):
         
-        d = pq(filename=self.kml_file.path, parser="xml")
+        on_iteration = kwargs.get("on_iteration", None)
 
-        for placemark in d("Placemark").items():
+        d = pq(filename=self.kml_file.path, parser="xml")
+        placemarks = d("Placemark")
+        total = len(placemarks)
+        i = 0
+
+        # If callable function is passed to keep track of progress, call it
+        if on_iteration:
+            on_iteration(i, total)
+
+        for i, placemark in enumerate( placemarks ):
+
+            # If callable function is passed to keep track of progress, call it
+            if on_iteration:
+                on_iteration(i+1, total)
 
             polygons = placemark.find("Polygon")
             primary_area = None 
@@ -255,10 +268,11 @@ class KmlMap(models.Model):
     def area_bins_from_soda_dataset(self, *args, **kwargs):
         limit = kwargs.get("limit", 1000)
         offset = kwargs.get("offset", 0)
-        iterations = kwargs.get("iterations", None)
+        iterations = kwargs.get("iterations", 1)
         search_kwargs = kwargs.get("search_kwargs", dict())
         lng_fieldname = kwargs.get("lng_field", "longitude")
         lat_fieldname = kwargs.get("lat_field", "latitude")
+        on_iteration = kwargs.get("on_iteration", None)
 
         client = self.get_socrata_client()
 
@@ -275,9 +289,17 @@ class KmlMap(models.Model):
         i = 0
         without_coords = 0
 
-        while iterations is None or i < iterations:
+        # If callable function is passed to keep track of progress, call it
+        if on_iteration:
+            on_iteration(i, iterations)
+
+        while i < iterations:
 
             i += 1
+
+            # If callable function is passed to keep track of progress, call it
+            if on_iteration:
+                on_iteration(i, iterations)
 
             data = client.get(
                 self.dataset_identifier, 

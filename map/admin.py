@@ -26,7 +26,6 @@ class KmlMapAdmin(admin.ModelAdmin):
 			task_kwargs = dict()
 			task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
 			messages.success(request, "Started data import for %s" % kmlmap.name)
-			print(task_ids)
 
 
 admin.site.register(Area, AreaAdmin)

@@ -2,7 +2,7 @@ import math
 
 from celery import chord
 
-from .tasks import get_kmlmap_areabins_2, merge_area_bins_2
+from .tasks import get_kmlmap_areabins, merge_area_bins
 
 def kml_hex_color_from_value_range(value, the_min, the_max):
 
@@ -47,10 +47,13 @@ def start_kmlmap_task(kmlmap, **kwargs):
 	limit = min(limit, math.ceil( int(dataset_count)/tasks) )
 	iterations = math.ceil(int(dataset_count) / (tasks * limit))
 
-	get_bins_group = [get_kmlmap_areabins_2.si(kmlmap, **{**search_kwargs, **dict(limit=limit, iterations=iterations, offset=i*iterations*limit)} ) for i in range(tasks)]
+	get_bins_group = [get_kmlmap_areabins.si(kmlmap, **{**search_kwargs, **dict(limit=limit, iterations=iterations, offset=i*iterations*limit)} ) for i in range(tasks)]
 
-	workflow = chord(get_bins_group, merge_area_bins_2.s(kmlmap))
+	workflow = chord(get_bins_group, merge_area_bins.s(kmlmap))
 	async_result = workflow.apply_async()
 
 	progress_task_ids = [ar.task_id for ar in async_result.parent.children] + [async_result.task_id]
 	return progress_task_ids
+
+
+
