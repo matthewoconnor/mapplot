@@ -29,18 +29,36 @@ BOUNDARY_TYPES = (
     ("INNER", "Inner Boundary")
 )
 
+WEIGHT_TYPES = (
+    ("COUNT", "Count Instances"),
+    ("SUM", "Sum Field value")
+)
+
+CATEGORIZE_TYPES = (
+    ("POINT", "Location Point"),
+    ("LATLNG", "Latitude Longitude"),
+    ("JOIN", "Join on Common Field"),
+    ("JOIN_MAP", "Join on Field Mapping")
+)
+
+DATASET_TYPES = (
+    ("SOCRATA", "Socrata Soda Data Portal"),
+    ("OTHER", "Url for Other Data Source")
+)
+
 
 class Area(models.Model):
     """
     A single enclosed area
     """
-    name = models.CharField(max_length=255)
-    external_identifier = models.CharField(max_length=255)
-    area_type = models.CharField(max_length=50, choices=AREA_TYPES)
-    boundary_type = models.CharField(max_length=50, choices=BOUNDARY_TYPES)
+    name = models.CharField(max_length=256)
+    external_identifier = models.CharField(max_length=256)
+    area_type = models.CharField(max_length=64, choices=AREA_TYPES)
+    boundary_type = models.CharField(max_length=64, choices=BOUNDARY_TYPES)
     polygon = models.TextField()
-    mbr = models.CharField(max_length=255) #n,e,s,w
+    mbr = models.CharField(max_length=256) #n,e,s,w
     is_primary = models.BooleanField(default=True)
+
     outer_area = models.ForeignKey("Area", related_name="inner_areas", related_query_name="inner_area", null=True, blank=True)
     primary_area = models.ForeignKey("Area", related_name="child_areas", related_query_name="child_area", null=True, blank=True)
 
@@ -109,16 +127,19 @@ class Area(models.Model):
 
 
 class AreaMap(models.Model):
-    """ A collection of areas (e.g. Chicago Neighborhoods)"""
-    name = models.CharField(max_length=255)
+    """ 
+    A collection of areas (e.g. Chicago Neighborhoods)
+    """
+    name = models.CharField(max_length=256)
+    description = models.CharField(max_length=256, blank=True)
     areas = models.ManyToManyField("Area", null=True, blank=True)
-    data_source = models.CharField(max_length=255, null=True, blank=True) # e.g. "data.cityofchicago.org"
-    dataset_identifier = models.CharField(max_length=255, null=True, blank=True)
+    data_source = models.CharField(max_length=256, null=True, blank=True) # e.g. "data.cityofchicago.org"
+    dataset_identifier = models.CharField(max_length=256, null=True, blank=True)
 
     kml_file = models.FileField(upload_to="uploads/areamap/", null=True, blank=True)
-    area_name_path = models.CharField(max_length=255, null=True, blank=True)
-    area_external_identifier_path = models.CharField(max_length=255, null=True, blank=True)
-    area_default_type = models.CharField(max_length=50, null=True, blank=True)
+    area_name_path = models.CharField(max_length=256, null=True, blank=True)
+    area_external_identifier_path = models.CharField(max_length=256, null=True, blank=True)
+    area_default_type = models.CharField(max_length=64, null=True, blank=True)
 
     created_time = models.DateTimeField()
 
@@ -237,17 +258,47 @@ class AreaMap(models.Model):
         return super().save(*args, **kwargs)
 
 
+class AreaBin(models.Model):
+    data_map = models.ForeignKey("DataMap")
+    area = models.ForeignKey("Area")
+    value = models.DecimalField(default=0.0) # value of the bin
+    count = models.IntegerField(default=0) # number of rows used for bin
 
-class KmlMap(models.Model):
-    """ A generated KML file for a data map"""
-    name = models.CharField(max_length=255)
+
+class DataMap(models.Model):
+    """
+    A generated KML file for a data map
+    """
+    name = models.CharField(max_length=256)
+    description = models.CharField(max_length=256, blank=True)
     user = models.ForeignKey("auth.User")
 
-    data_source = models.CharField(max_length=255, null=True, blank=True) # e.g. "data.cityofchicago.org"
-    dataset_identifier = models.CharField(max_length=255, null=True, blank=True)
     area_map = models.ForeignKey("AreaMap", null=True, blank=True)
 
+    dataset_type = models.CharField(max_length=256, choices=DATASET_TYPES, blank=True)
+
+    # for socrata datasets
+    data_source = models.CharField(max_length=256, null=True, blank=True) # e.g. "data.cityofchicago.org"
+    dataset_identifier = models.CharField(max_length=256, null=True, blank=True)
+
+    # other datasets
+    dataset_url = models.URLField(max_length=256, blank=True)
+    
+    weight_type = models.CharField(max_length=64, choices=WEIGHT_TYPES)
+    categorize_type = models.CharField(choices=CATEGORIZE_TYPES)
+
+    point_key = models.CharField(max_length=256, blank=True)
+    latitude_key = models.CharField(max_length=256, blank=True)
+    longitude_key = models.CharField(max_length=256, blank=True)
+    join_key = models.CharField(max_length=256, blank=True)
+    join_map_file = models.CharField(upload_to="uploads/joinmap/", null=True, blank=True) # json file for complex join mapping
+
+    value_key = models.CharField(max_length=256, blank=True)
+    querystring = models.CharField(max_length=256, blank=True)
+
     kml_file = models.FileField(upload_to="uploads/datamap/", null=True, blank=True)
+
+    task_id = models.CharField(max_length=256, blank=True) # For tracking progress
 
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()

@@ -1,6 +1,6 @@
 (function(){
 	angular.module("MapApplication")
-		.controller('KmlMapController', function($scope, $log, $http, $interval) {
+		.controller('DataMapController', function($scope, $log, $http, $interval) {
 
 	  		$scope.kmldata = null;
 
@@ -77,14 +77,14 @@
 		  					$scope.watchingProgress = false;
 
 		  					// refetch at the end 
-		  					$scope.fetchKmlMap();
+		  					$scope.fetchDataMap();
 		  				}
 		  			});
 	  			}, 1000);
 
 	  		}
 
-	  		$scope.fetchKmlMap = function() {
+	  		$scope.fetchDataMap = function() {
 
 	  			$scope.isLoading = true;
 

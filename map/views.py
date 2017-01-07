@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.views.generic import View, TemplateView, FormView
 from django.http import JsonResponse
 
-from .models import KmlMap, AreaMap
+from .models import DataMap, AreaMap
 from .utils import start_kmlmap_task
 from .tasks import poll_task_progress
 from .forms import KmlmapForm
@@ -14,7 +14,7 @@ class KmlViewerView(TemplateView):
 	template_name = "map/kmlmap-viewer.html"
 
 	def get(self, request, *args, **kwargs):
-		self.kmlmaps = KmlMap.objects.all()
+		self.kmlmaps = DataMap.objects.all()
 		return super().get(request, *args, **kwargs)
 
 class KmlmapEdit(FormView):
@@ -65,15 +65,15 @@ class KmlmapCreateViewPart(FormView):
 		response_context = dict(success=False, messages=form.errors)
 		return JsonResponse(response_context)
 
-class KmlMapListJson(View):
+class DataMapListJson(View):
 
 	def get(self, request, *args, **kwargs):
 		filter_ids = request.GET.get("ids", None)
 		if filter_ids:
 			filter_id_list = filter_ids.split(",")
-			kmlmaps = KmlMap.objects.filter(id__in=filter_id_list)
+			kmlmaps = DataMap.objects.filter(id__in=filter_id_list)
 		else:
-			kmlmaps = KmlMap.objects.all(); 
+			kmlmaps = DataMap.objects.all(); 
 		context = dict(
 			kmlfiles=[dict(id=km.id, title=km.name, source=km.get_file_url()) for km in kmlmaps]
 		)

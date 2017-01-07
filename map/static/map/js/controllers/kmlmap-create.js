@@ -1,6 +1,6 @@
 (function(){
   angular.module("MapApplication")
-  	.controller('KmlMapCreateController', function($scope, $log, $http) {
+  	.controller('DataMapCreateController', function($scope, $log, $http) {
   		
     		$scope.kmlmap = {};
 

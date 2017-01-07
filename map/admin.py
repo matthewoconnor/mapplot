@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 
 from .utils import start_kmlmap_task
-from .models import Area, AreaMap, KmlMap
+from .models import Area, AreaMap, DataMap
 
 
 class AreaAdmin(admin.ModelAdmin):
@@ -14,7 +14,7 @@ class AreaMapAdmin(admin.ModelAdmin):
 	list_display = ("id", "name", "data_source", "dataset_identifier", "created_time")
 
 
-class KmlMapAdmin(admin.ModelAdmin):
+class DataMapAdmin(admin.ModelAdmin):
 
 	list_display = ("id", "name", "area_map", "data_source", "dataset_identifier", "created_time")
 
@@ -30,4 +30,4 @@ class KmlMapAdmin(admin.ModelAdmin):
 
 admin.site.register(Area, AreaAdmin)
 admin.site.register(AreaMap, AreaMapAdmin)
-admin.site.register(KmlMap, KmlMapAdmin)
+admin.site.register(DataMap, DataMapAdmin)

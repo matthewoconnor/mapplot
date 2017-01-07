@@ -1,7 +1,7 @@
 angular
 	.module('KmpMapEditor', ['ngMaterial', 'ngMessages'])
-	.controller('KmlMapForm', function($scope) {
-		$scope.kmlmap = $("form", "KmlMapForm").serialize();
+	.controller('DataMapForm', function($scope) {
+		$scope.kmlmap = $("form", "DataMapForm").serialize();
 	})
 	.config(function($mdThemingProvider) {
 

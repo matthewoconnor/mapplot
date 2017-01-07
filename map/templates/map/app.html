@@ -46,7 +46,7 @@
 		        		<div class="nav-custom-list" flex layout-padding>
 							<div
 				      			ng-repeat="kmlfile in kmlfiles" 
-				      			ng-controller="KmlMapController"
+				      			ng-controller="DataMapController"
 				      			ng-click="stopPropagation($event)">
 				      			<div layout="column" flex>
 				      				<div layout="row">
@@ -87,7 +87,7 @@
 				 	</md-content>
 
 				 	<div layout="column" flex ng-show="view == 'create'">
-						<md-content ng-controller="KmlMapCreateController" flex layout-padding>
+						<md-content ng-controller="DataMapCreateController" flex layout-padding>
 						{% include 'map/app/kmlmap-form.html' %}
 						</md-content>
 					</div>
