@@ -78,7 +78,7 @@
 				 			<h1><span>Kml File App</span></h1>
 				 			<span flex></span>
 				 			<md-button ng-click="navigate('map')" aria-label="Map View">Map</md-button>
-				 			<md-button ng-click="navigate('create')" aria-label="Toggle Menu">Create</md-button>
+				 			<md-button ng-click="navigate('create_datamap')" aria-label="Toggle Menu">Create Data Map</md-button>
 				 		</div>
 				 	</md-toolbar>
 
@@ -87,8 +87,33 @@
 				 	</md-content>
 
 				 	<div layout="column" flex ng-show="view == 'create'">
-						<md-content ng-controller="DataMapCreateController" flex layout-padding>
+						<md-content  flex layout-padding>
 						{% include 'map/app/kmlmap-form.html' %}
+						</md-content>
+					</div>
+
+					<div layout="column" flex ng-show="view == 'create_datamap'">
+						<md-content ng-controller="DataMapCreateController" flex layout-padding>
+							<md-tabs md-dynamic-height md-border-bottom>
+						      <md-tab label="Data Map Basic Info">
+						        <md-content ng-controller="DataMapBascInfoController" class="md-padding">
+						          <h1 class="md-display-2">Data Map Basic Info</h1>
+						          {% include 'map/app/kmlmap-basic-info-form.html' %}
+						        </md-content>
+						      </md-tab>
+						      <md-tab label="Data Import Settings">
+						        <md-content ng-controller="DataMapImportSettingsController" class="md-padding">
+						          <h1 class="md-display-2">Data Import Settings</h1>
+						          {% include 'map/app/kmlmap-import-settings-form.html' %}
+						        </md-content>
+						      </md-tab>
+						      <md-tab label="Import Data">
+						        <md-content ng-controller="DataMapImportProgressController" class="md-padding">
+						          <h1 class="md-display-2">Import Data</h1>
+						          {% include 'map/app/kmlmap-import-progress.html' %}
+						        </md-content>
+						      </md-tab>
+						    </md-tabs>
 						</md-content>
 					</div>
 

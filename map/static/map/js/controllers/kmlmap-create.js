@@ -3,46 +3,18 @@
   	.controller('DataMapCreateController', function($scope, $log, $http) {
   		
     		$scope.kmlmap = {};
+        $scope.metadata = {};
 
-        $scope.areaMapAutocomplete = {
-          searchText : "",
-          getMatches : function(query) {
-            return $http.get(
-              "/app/areamap/autocomplete/", 
-              {"params":{"query":query}}
-            ).then(function(response){
-              return response.data.results
-            });
-          },
-          selectedItemChanged : function(item) {
-            $scope.kmlmap.area_map = item;
-          }
-        }
-
-        $scope.submitForm =function() {
-
-          console.log("SUBMITTED FORM");
-
-          var submitData = angular.copy($scope.kmlmap);
-          submitData.area_map = $scope.kmlmap.area_map.id;
-          submitData = $.param(submitData);
-
-          var config = {
-              headers : {
-                  'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+        $scope.get_metadata = function() {
+          var url = "/app/kmlmap/"+$scope.kmlmap.id"/metadata/"
+          $http.get(url)
+            .then(function(response){
+              if(response.data.kmlfiles){
+                $scope.kmlfile = response.data.kmlfiles[0]; 
               }
-          }
-
-          $http.post("/app/kmlmap/create/", submitData, config).then(function(response){
-            if(response.data.success && response.data.kmlmap){
-              var newkmlmap = response.data.kmlmap;
-              newkmlmap.task_ids = response.data.task_ids;
-              $scope.kmlfiles.unshift(newkmlmap);
-              $scope.kmlmap = {};
-            }
-          });
-
-        }
+              $scope.metadata = response.data;
+            });
+        };
 
     	});
 })();

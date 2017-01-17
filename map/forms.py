@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import KmlMap
+from .models import DataMap
 
 class KmlmapForm(forms.ModelForm):
 
@@ -18,5 +18,5 @@ class KmlmapForm(forms.ModelForm):
 	match_area_field=forms.CharField(required=False)
 
 	class Meta:
-		model = KmlMap
+		model = DataMap
 		fields = ["name", "data_source", "dataset_identifier", "area_map"]

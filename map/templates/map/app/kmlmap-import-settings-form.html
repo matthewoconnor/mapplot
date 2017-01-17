@@ -1,5 +1,3 @@
-<h2>Create Kml File</h2>
-
 <form ng-submit="submitForm()">
 	{% csrf_token %}
 	
@@ -35,17 +33,6 @@
 			</md-autocomplete>
 		</md-input-container>
 		<input type="hidden" name="area_map" ng-model="kmlmap.area_map.id"/>
-	</md-content>
-
-	<md-content layout-gt-sm="row" layout-padding>
-		<md-input-container flex-gt-sm>
-			<label>SODA "where" clause</label>
-			<input name="search_kwargs" ng-model="kmlmap.where" />
-		</md-input-container>
-		<md-input-container flex-gt-sm>
-			<label>Limit (number of results handled in one request)</label>
-			<input name="limit" ng-model="kmlmap.limit" />
-		</md-input-container>
 	</md-content>
 
 	<md-content layout="row" layout-padding layout-align="center center" layout-align-sm="end center">

@@ -7,32 +7,9 @@ from .utils import start_kmlmap_task
 from .tasks import poll_task_progress
 from .forms import KmlmapForm
 
-
-class KmlViewerView(TemplateView):
-	""" TempateView with world map and application to view kml maps"""
-
-	template_name = "map/kmlmap-viewer.html"
-
-	def get(self, request, *args, **kwargs):
-		self.kmlmaps = DataMap.objects.all()
-		return super().get(request, *args, **kwargs)
-
-class KmlmapEdit(FormView):
-
-	template_name = "map/kmlmap-import-dataset-form.html"
-	form_class = KmlmapForm
-
-# create kml area map
-
 class KmlmapCreateViewPart(FormView):
 	template_name = "map/app/kmlmap-form.html"
 	form_class = KmlmapForm
-
-	def post(self, request, *args, **kwargs):
-		print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-		for key, value in request.POST.items():
-			print(key, value)
-		return super().post(request, *args, **kwargs)
 
 	def form_valid(self, form):
 		kmlmap = form.save()
@@ -48,12 +25,6 @@ class KmlmapCreateViewPart(FormView):
 			match_area_field=form.cleaned_data.get("match_area_field")
 		)
 
-		print("")
-		print(kmlmap.area_map)
-		print("")
-		print(task_kwargs)
-		print("")
-
 		task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
 
 		response_context = dict(success=True, kmlmap=dict(id=kmlmap.id, title=kmlmap.name), task_ids=task_ids)
@@ -61,7 +32,6 @@ class KmlmapCreateViewPart(FormView):
 		return JsonResponse(response_context)
 
 	def form_invalid(self, form):
-		#print(form.__dir__())
 		response_context = dict(success=False, messages=form.errors)
 		return JsonResponse(response_context)
 
@@ -100,5 +70,12 @@ class KmlAreaMapAutocomplete(View):
 		return JsonResponse( context )
 
 
+class SocrataDatamapMetadata(View):
+
+	def get(self, request, *args, **kwargs):
+		datamap_id = kwargs.get("datamap_id")
+		datamap = DataMap.objects.get(id=datamap_id)
+		metadata = datamap.get_socrata_client().get_metadata(datamap.dataset_identifier)
+		return JsonReponse(metadata)
 
 

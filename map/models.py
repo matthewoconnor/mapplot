@@ -261,7 +261,7 @@ class AreaMap(models.Model):
 class AreaBin(models.Model):
     data_map = models.ForeignKey("DataMap")
     area = models.ForeignKey("Area")
-    value = models.DecimalField(default=0.0) # value of the bin
+    value = models.FloatField(default=0.0) # value of the bin
     count = models.IntegerField(default=0) # number of rows used for bin
 
 
@@ -285,13 +285,13 @@ class DataMap(models.Model):
     dataset_url = models.URLField(max_length=256, blank=True)
     
     weight_type = models.CharField(max_length=64, choices=WEIGHT_TYPES)
-    categorize_type = models.CharField(choices=CATEGORIZE_TYPES)
+    categorize_type = models.CharField(choices=CATEGORIZE_TYPES, max_length=64)
 
     point_key = models.CharField(max_length=256, blank=True)
     latitude_key = models.CharField(max_length=256, blank=True)
     longitude_key = models.CharField(max_length=256, blank=True)
     join_key = models.CharField(max_length=256, blank=True)
-    join_map_file = models.CharField(upload_to="uploads/joinmap/", null=True, blank=True) # json file for complex join mapping
+    join_map_file = models.FileField(upload_to="uploads/joinmap/", null=True, blank=True) # json file for complex join mapping
 
     value_key = models.CharField(max_length=256, blank=True)
     querystring = models.CharField(max_length=256, blank=True)
