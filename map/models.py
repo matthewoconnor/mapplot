@@ -303,12 +303,14 @@ class DataMap(models.Model):
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
 
+    # KEEP
     def get_file_url(self):
         try:
             return self.kml_file.url
         except:
             return None
 
+    # KEEP
     def get_socrata_client(self, *args, **kwargs):
         socrata_credentials = settings.DATA_PORTAL_KEYS.get("socrata", None)
         if socrata_credentials:
@@ -316,6 +318,77 @@ class DataMap(models.Model):
         else:
             return Socrata(self.data_source, None)
 
+    # NEW
+    def areabin_dict_from_socrata_dataset(self, *args, **kwargs):
+        limit = kwargs.get("limit", 1000)
+        offset = kwargs.get("offset", 0)
+        iterations = kwargs.get("iterations", 1)
+        on_iteration = kwargs.get("on_iteration", None)
+
+        client = self.get_socrata_client()
+
+        areas = self.area_map.areas.filter(
+            is_primary=True
+        ).prefetch_related("inner_areas", "child_areas__inner_areas")
+
+        area_bins = [dict(
+            area=area,
+            polygons=area.get_grouped_polygon_list(),
+            count=0,
+        ) for area in areas]
+
+        i = 0
+
+        # If callable function is passed to keep track of progress, call it
+        if on_iteration:
+            on_iteration(i, iterations)
+
+        while i < iterations:
+
+            # If callable function is passed to keep track of progress, call it
+            if on_iteration:
+                on_iteration(i, iterations)
+
+            data = client.get(
+                self.dataset_identifier,
+                content_type="json",
+                limit=limit,
+                offset=offset) # ADD WHERE CLAUSE FROM QUEYSTRING
+
+            if not data:
+                break
+
+            if self.categorize_type == "POINT":
+                for row in data:
+                    try:
+                        point = row[self.point_key]
+                        coords = lat_value.get("coordinates")
+                        lng = float(coords[0])
+                        lat = float(coords[1])
+                        for ab in area_bins:
+                            if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
+                                ab["count"] += 1
+                                break
+                    except:
+                        pass
+
+            elif self.categorize_type == "LATLNG":
+                for row in data:
+                    try:
+                        lng = float(row[lng_value])
+                        lat = float(row[lat_value])
+                        for ab in area_bins:
+                            if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
+                                ab["count"] += 1
+                                break
+                    except:
+                        pass
+
+            offset += limit
+
+        return area_bins
+
+    # OLD
     def area_bins_from_soda_dataset(self, *args, **kwargs):
         limit = kwargs.get("limit", 1000)
         offset = kwargs.get("offset", 0)
@@ -388,6 +461,7 @@ class DataMap(models.Model):
 
         return area_bins
 
+    # KEEP, STILL USEFUL FOR DOWNLOADING KML FILES
     def save_kmlfile_from_area_bins(self, area_bins):
         counts = [ab["count"] for ab in area_bins]
         min_count = min(counts)
@@ -408,6 +482,17 @@ class DataMap(models.Model):
 
         return self.kml_file.path
 
+    # NEW
+    def save_areabins_from_dicts(self, areabin_dicts):
+        for ab_dict in areabin_dicts:
+            AreaBin.objects.update_or_create(
+                data_map=self,
+                area=ab_dict["area"],
+                default={
+                    "count": ab_dict["count"],
+                    "value": ab_dict["value"]
+                });
+
     def kml_mapplot_from_soda_dataset(self, *args, **kwargs):
         area_bins = self.area_bins_from_soda_dataset(*args, **kwargs)
         return self.save_kmlfile_from_area_bins(area_bins)
@@ -417,7 +502,7 @@ class DataMap(models.Model):
 
     def save(self, *args, **kwargs):
         now = timezone.now()
-        self.created_time = self.created_time or timezone.now()
+        self.created_time = self.created_time or now
         self.updated_time = now
         self.user_id = 1 # REMOVE WHEN ABILITY FOR MORE USERS
         return super().save(*args, **kwargs)

@@ -39,8 +39,7 @@
 			        class="md-sidenav-left"
 			        md-component-id="left"
 			        md-is-locked-open="$mdMedia('gt-sm')"
-			        md-whiteframe="4"
-			        layout-fill>
+			        md-whiteframe="4">
 
 		        	<md-content flex>
 		        		<div class="nav-custom-list" flex layout-padding>
@@ -86,12 +85,6 @@
 				 		<div layout="column" id="worldmap"></div>
 				 	</md-content>
 
-				 	<div layout="column" flex ng-show="view == 'create'">
-						<md-content  flex layout-padding>
-						{% include 'map/app/kmlmap-form.html' %}
-						</md-content>
-					</div>
-
 					<div layout="column" flex ng-show="view == 'create_datamap'">
 						<md-content ng-controller="DataMapCreateController" flex layout-padding>
 							<md-tabs md-dynamic-height md-border-bottom>
@@ -118,6 +111,7 @@
 					</div>
 
 				 </div>
+
 			</section>
 
 		</div>	

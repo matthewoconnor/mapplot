@@ -3,7 +3,7 @@
   	.controller('DataMapImportProgressController', function($scope, $log, $http) {
 
         $scope.watchProgress = function() {
-
+        	
         }
 
 	});

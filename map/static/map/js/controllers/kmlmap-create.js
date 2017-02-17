@@ -6,7 +6,7 @@
         $scope.metadata = {};
 
         $scope.get_metadata = function() {
-          var url = "/app/kmlmap/"+$scope.kmlmap.id"/metadata/"
+          var url = "/app/kmlmap/"+$scope.kmlmap.id+"/metadata/";
           $http.get(url)
             .then(function(response){
               if(response.data.kmlfiles){
