@@ -1,10 +1,9 @@
-from django.shortcuts import render
-from django.views.generic import View, TemplateView, FormView
+from django.views.generic import View, FormView
 from django.http import JsonResponse
 
 from .models import DataMap, AreaMap
-from .utils import start_kmlmap_task
-from .tasks import poll_task_progress, start_datamap_import_task
+from .utils import start_kmlmap_task, start_datamap_import_task
+from .tasks import poll_task_progress
 from .forms import KmlmapForm, DataMapImportSettingsForm
 
 

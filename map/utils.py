@@ -2,7 +2,8 @@ import math
 
 from celery import chord
 
-from .tasks import get_kmlmap_areabins, merge_area_bins
+from .tasks import get_kmlmap_areabins, merge_datamap_areabins, get_datamap_areabins
+
 
 def kml_hex_color_from_value_range(value, the_min, the_max):
 
@@ -31,6 +32,7 @@ def kml_height_from_value_range(value, the_min, the_max):
     return (((value - the_min) * norm_range_size) / range_size) + the_norm_min
 
 
+# NEW
 def start_datamap_import_task(datamap):
     LIMIT = 5000
     TASKS = 4
@@ -40,18 +42,23 @@ def start_datamap_import_task(datamap):
     limit = min(LIMIT, math.ceil(int(dataset_count)/TASKS))
     iterations = math.ceil(int(dataset_count) / (TASKS * limit))
 
+    soda_query_kwargs = dict(limit=limit, iterations=iterations)
+    if datamap.querystring:
+        soda_query_kwargs["where"] = datamap.querystring
+
     get_bins_group = [get_datamap_areabins.si(kmlmap, **{
-        **dict(where=datamap.querystring) if datamap.querystring else **dict(),
-        **dict(limit=limit, iterations=iterations, offset=i*iterations*limit)
+        **soda_query_kwargs,
+        **dict(offset=i*iterations*limit)
     }) for i in range(tasks)]
 
-    workflow = chord(get_bins_group, merge_area_bins.s(kmlmap))
+    workflow = chord(get_bins_group, merge_datamap_areabins.s(kmlmap))
     async_result = workflow.apply_async()
 
     progress_task_ids = [ar.task_id for ar in async_result.parent.children] + [async_result.task_id]
     return progress_task_ids
 
 
+# OLD
 def start_kmlmap_task(kmlmap, **kwargs):
 
     limit = kwargs.get("limit", 1000);

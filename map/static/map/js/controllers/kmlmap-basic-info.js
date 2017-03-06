@@ -19,29 +19,27 @@
 
         $scope.submitForm =function() {
 
-          console.log("SUBMITTED FORM");
+          // var submitData = angular.copy($scope.kmlmap);
+          // submitData.area_map = $scope.kmlmap.area_map.id;
+          // submitData = $.param(submitData);
 
-          var submitData = angular.copy($scope.kmlmap);
-          submitData.area_map = $scope.kmlmap.area_map.id;
-          submitData = $.param(submitData);
+          // var config = {
+          //     headers : {
+          //         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
+          //     }
+          // }
 
-          var config = {
-              headers : {
-                  'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8;'
-              }
-          }
+          // $http.post("/app/datamap/create/", submitData, config).then(function(response){
+          //   if(response.data.success && response.data.kmlmap){
+          //     var newkmlmap = response.data.kmlmap;
+          //     $scope.current_tab = "settings"
+          //   }
+          // });
 
-          $http.post("/app/kmlmap/create/", submitData, config).then(function(response){
-            if(response.data.success && response.data.kmlmap){
-              var newkmlmap = response.data.kmlmap;
-              newkmlmap.task_ids = response.data.task_ids;
-              $scope.kmlfiles.unshift(newkmlmap);
-              $scope.kmlmap = {};
-            }
-          });
+           $scope.change_tab("settings");
 
         }
 
-      });
+    });
 })();
 

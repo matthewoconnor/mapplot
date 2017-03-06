@@ -461,24 +461,23 @@ class DataMap(models.Model):
 
         return area_bins
 
-    # KEEP, STILL USEFUL FOR DOWNLOADING KML FILES
-    def save_kmlfile_from_area_bins(self, area_bins):
-        counts = [ab["count"] for ab in area_bins]
+    # KEEP
+    def save_kmlfile_from_areabins(self):
+        areabins = self.areabins.all()
+        counts = [ab.count for ab in areabins]
         min_count = min(counts)
         max_count = max(counts)
 
-        for ab in area_bins:
-            ab["height"] = kml_height_from_value_range(ab["count"], min_count, max_count)
-            ab["color"] = kml_hex_color_from_value_range(ab["count"], min_count, max_count)
+        for ab in areabins:
+            ab["height"] = kml_height_from_value_range(ab.count, min_count, max_count)
+            ab["color"] = kml_hex_color_from_value_range(ab.count, min_count, max_count)
 
         kml_string = render_to_string("map/map_template.kml", dict(
             kml_map=self,
-            area_bins=area_bins
+            areabins=areabins
         ))
 
         self.kml_file.save("{0} {1}.kml".format(self.name, self.id), ContentFile(kml_string))
-
-        print("SAVED FILE")
 
         return self.kml_file.path
 
@@ -488,7 +487,7 @@ class DataMap(models.Model):
             AreaBin.objects.update_or_create(
                 data_map=self,
                 area=ab_dict["area"],
-                default={
+                defaults={
                     "count": ab_dict["count"],
                     "value": ab_dict["value"]
                 });

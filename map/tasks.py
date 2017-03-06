@@ -66,8 +66,8 @@ def get_datamap_areabins(self, datamap, **kwargs):
     return datamap.areabin_dict_from_socrata_dataset(**kwargs)
 
 # NEW
-@shared_task(name="merge_area_bins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
-def merge_areabins(self, areabins_list, datamap):
+@shared_task(name="merge_datamap_areabins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
+def merge_datamap_areabins(self, areabins_list, datamap):
 
     areabins = [item for sublist in areabins_list for item in sublist]
     TOTAL = len(areabins)
