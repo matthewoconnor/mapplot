@@ -16,7 +16,7 @@
 	  			$scope.isLoading = true;
 	  			if(!$scope.kmldata) {
 	  				$scope.kmldata = Cesium.KmlDataSource.load(
-						$scope.kmlfile.source, {
+						$scope.datamap.source, {
 				        	camera: $scope.cesium.camera,
 				        	canvas: $scope.cesium.canvas
 				        });
@@ -88,10 +88,10 @@
 
 	  			$scope.isLoading = true;
 
-	  			$http.get("/kmlmap/list/json/", {"params":{"ids":$scope.kmlfile.id}})
+	  			$http.get("/kmlmap/list/json/", {"params":{"ids":$scope.datamap.id}})
 					.then(function(response){
-						if(response.data.kmlfiles){
-							$scope.kmlfile = response.data.kmlfiles[0];	
+						if(response.data.datamaps){
+							$scope.datamap = response.data.datamaps[0];	
 						}
 						$scope.isLoading = false;
 					});
@@ -99,8 +99,8 @@
 
 
 	  		// ON INIT
-	  		if($scope.kmlfile.task_ids) {
-	  			$scope.watchTaskProgress($scope.kmlfile.task_ids.join(","));
+	  		if($scope.datamap.task_ids) {
+	  			$scope.watchTaskProgress($scope.datamap.task_ids.join(","));
 	  		}
 
 	  	});

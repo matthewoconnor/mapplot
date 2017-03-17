@@ -1,33 +1,39 @@
 from django.contrib import admin, messages
 
 from .utils import start_kmlmap_task
-from .models import Area, AreaMap, DataMap
+from .models import Area, AreaMap, DataMap, AreaBin
 
 
 class AreaAdmin(admin.ModelAdmin):
 
-	list_display = ("id", "name", "area_type")
+    list_display = ("id", "name", "area_type")
 
 
 class AreaMapAdmin(admin.ModelAdmin):
 
-	list_display = ("id", "name", "data_source", "dataset_identifier", "created_time")
+    list_display = ("id", "name", "data_source", "dataset_identifier", "created_time")
 
 
 class DataMapAdmin(admin.ModelAdmin):
 
-	list_display = ("id", "name", "area_map", "data_source", "dataset_identifier", "created_time")
+    list_display = ("id", "name", "area_map", "data_source", "dataset_identifier", "created_time")
 
-	actions = ["generate_kmlmap_async"]
+    actions = ["generate_kmlmap_async"]
 
-	def generate_kmlmap_async(self, request, queryset):
+    def generate_kmlmap_async(self, request, queryset):
 
-		for kmlmap in queryset:
-			task_kwargs = dict()
-			task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
-			messages.success(request, "Started data import for %s" % kmlmap.name)
+        for kmlmap in queryset:
+            task_kwargs = dict()
+            task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
+            messages.success(request, "Started data import for %s" % kmlmap.name)
+
+
+class AreaBinAdmin(admin.ModelAdmin):
+
+    list_display = ("id", "data_map", "area", "value", "count")
 
 
 admin.site.register(Area, AreaAdmin)
 admin.site.register(AreaMap, AreaMapAdmin)
 admin.site.register(DataMap, DataMapAdmin)
+admin.site.register(AreaBin, AreaBinAdmin)

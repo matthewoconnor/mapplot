@@ -35,8 +35,8 @@ def kml_height_from_value_range(value, the_min, the_max):
 # NEW
 def start_datamap_import_task(datamap):
     LIMIT = 5000
-    TASKS = 4
-    client = kmlmap.get_socrata_client()
+    TASKS = 2
+    client = datamap.get_socrata_client()
 
     dataset_count = datamap.get_dataset_count()
     limit = min(LIMIT, math.ceil(int(dataset_count)/TASKS))
@@ -46,12 +46,12 @@ def start_datamap_import_task(datamap):
     if datamap.querystring:
         soda_query_kwargs["where"] = datamap.querystring
 
-    get_bins_group = [get_datamap_areabins.si(kmlmap, **{
+    get_bins_group = [get_datamap_areabins.si(datamap, **{
         **soda_query_kwargs,
         **dict(offset=i*iterations*limit)
-    }) for i in range(tasks)]
+    }) for i in range(TASKS)]
 
-    workflow = chord(get_bins_group, merge_datamap_areabins.s(kmlmap))
+    workflow = chord(get_bins_group, merge_datamap_areabins.s(datamap))
     async_result = workflow.apply_async()
 
     progress_task_ids = [ar.task_id for ar in async_result.parent.children] + [async_result.task_id]

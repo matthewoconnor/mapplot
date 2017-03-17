@@ -1,9 +1,10 @@
 (function(){
 	angular.module("MapApplication")
-		.controller("MapApplicationController", function ($scope, $http, $mdSidenav, $log) {
+		.controller("MapApplicationController", function ($scope, $http, $mdSidenav, $log, $datamaps) {
 
+			Cesium.BingMapsApi.defaultKey = "ArHjacadQi3kS1tS5SF2COD2kB5dZVy0LN8pFxGLmkMMuEDHhhTIO22VYXZ2os5S";
 			$scope.cesium = new Cesium.Viewer("worldmap");
-			$scope.kmlfiles = [];
+			$scope.datamaps = $datamaps.data;
 			$scope.isLoading = false;
 
 			$scope.toggleLeftMenu = buildToggler('left');
@@ -11,13 +12,14 @@
 		
 			$scope.fetchData = function(){
 				$scope.isLoading = true;
-				$log.debug("fetchingData");
-				$http.get("/kmlmap/list/json/")
-					.then(function(response){
-						$scope.kmlfiles = response.data.kmlfiles;
-						$scope.isLoading = false;
-					});
+				$datamaps.fetchAll(function(){
+					$scope.isLoading = false;
+				});
 			}
+
+			$scope.$on("datamaps:updated", function(event, data) {
+				$scope.datamaps = data;
+			});
 
 			$scope.navigate = function(viewname) {
 				$scope.view = viewname;
@@ -38,8 +40,6 @@
 		          });
 		      }
 		    };
-
-
 
 			$scope.fetchData();
 		});

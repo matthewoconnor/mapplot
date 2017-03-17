@@ -27,7 +27,7 @@ class KmlmapCreateViewPart(FormView):
 
         task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
 
-        response_context = dict(success=True, kmlmap=dict(id=kmlmap.id, title=kmlmap.name), task_ids=task_ids)
+        response_context = dict(success=True, kmlmap=dict(id=kmlmap.id, name=kmlmap.name), task_ids=task_ids)
 
         return JsonResponse(response_context)
 
@@ -43,7 +43,7 @@ class DataMapCreateView(FormView):
 
     def form_valid(self, form):
         datamap = form.save()
-        response_context = dict(success=True, datamap=datamap)
+        response_context = dict(success=True, datamap_id=datamap.id)
         return JsonResponse(response_context)
 
     def form_invalid(self, form):
@@ -57,7 +57,7 @@ class DataMapImportSettingsView(FormView):
 
     def setup(self):
         datamap_id = self.kwargs.get("datamap_id")
-        self.datamap = DataMap.objects.filter(id=datamap_id)
+        self.datamap = DataMap.objects.get(id=datamap_id)
 
     def get(self, request, *args, **kwargs):
         self.setup()
@@ -93,18 +93,19 @@ class DataMapListJson(View):
         else:
             kmlmaps = DataMap.objects.all(); 
         context = dict(
-            kmlfiles=[dict(id=km.id, title=km.name, source=km.get_file_url()) for km in kmlmaps]
+            kmlfiles=[dict(id=km.id, name=km.name, source=km.get_file_url()) for km in kmlmaps]
         )
         return JsonResponse( context )
+
 
 class TaskProgressView(View):
 
     def get(self, request, *args, **kwargs):
         task_ids = request.GET.get("task_ids", None)
         task_id_list = task_ids.split(",") if task_ids else []
-        print(task_id_list)
         context = poll_task_progress(task_id_list)
-        return JsonResponse( context )
+        return JsonResponse(context)
+
 
 class KmlAreaMapAutocomplete(View):
 

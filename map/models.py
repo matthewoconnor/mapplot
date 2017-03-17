@@ -1,4 +1,5 @@
 import re
+import requests
 import matplotlib.path as matplotlib_path
 import numpy as np
 
@@ -156,11 +157,12 @@ class AreaMap(models.Model):
         if on_iteration:
             on_iteration(i, total)
 
-        for i, placemark in enumerate( placemarks ):
+        for placemark in placemarks.items():
 
             # If callable function is passed to keep track of progress, call it
+            i += 1
             if on_iteration:
-                on_iteration(i+1, total)
+                on_iteration(i, total)
 
             polygons = placemark.find("Polygon")
             primary_area = None 
@@ -313,10 +315,27 @@ class DataMap(models.Model):
     # KEEP
     def get_socrata_client(self, *args, **kwargs):
         socrata_credentials = settings.DATA_PORTAL_KEYS.get("socrata", None)
+        session_adapter = dict(
+                prefix="http://", 
+                adapter=requests.adapters.HTTPAdapter(max_retries=3))
         if socrata_credentials:
-            return Socrata(self.data_source, socrata_credentials["app_token"], username=socrata_credentials["username"], password=socrata_credentials["password"])
+            return Socrata(
+                self.data_source, 
+                socrata_credentials["app_token"], 
+                username=socrata_credentials["username"],
+                password=socrata_credentials["password"],
+                session_adapter=session_adapter)
         else:
-            return Socrata(self.data_source, None)
+            return Socrata(
+                self.data_source, 
+                None, 
+                session_adapter=session_adapter)
+
+    def get_dataset_count(self, *args, **kwargs):
+        # to do: include filters
+        client = self.get_socrata_client()
+        dataset_count = client.get(self.dataset_identifier, exclude_system_fields=False, select="count(:id)")[0].get("count_id")
+        return dataset_count
 
     # NEW
     def areabin_dict_from_socrata_dataset(self, *args, **kwargs):
@@ -345,6 +364,8 @@ class DataMap(models.Model):
 
         while i < iterations:
 
+            i += 1
+
             # If callable function is passed to keep track of progress, call it
             if on_iteration:
                 on_iteration(i, iterations)
@@ -362,7 +383,7 @@ class DataMap(models.Model):
                 for row in data:
                     try:
                         point = row[self.point_key]
-                        coords = lat_value.get("coordinates")
+                        coords = point.get("coordinates")
                         lng = float(coords[0])
                         lat = float(coords[1])
                         for ab in area_bins:
@@ -488,8 +509,8 @@ class DataMap(models.Model):
                 data_map=self,
                 area=ab_dict["area"],
                 defaults={
-                    "count": ab_dict["count"],
-                    "value": ab_dict["value"]
+                    "count": ab_dict.get("count", 0),
+                    "value": ab_dict.get("value", 0.0)
                 });
 
     def kml_mapplot_from_soda_dataset(self, *args, **kwargs):

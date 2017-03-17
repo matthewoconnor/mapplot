@@ -12,6 +12,7 @@ def blank_task(name="No Name"):
     # use at front of chain if followed by a group
     return name
 
+
 # OLD
 @shared_task(name="get_kmlmap_areabins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
 def get_kmlmap_areabins(self, kmlmap, **kwargs):
@@ -22,6 +23,7 @@ def get_kmlmap_areabins(self, kmlmap, **kwargs):
     kwargs["on_iteration"] = update_task_progress
 
     return kmlmap.area_bins_from_soda_dataset(**kwargs)
+
 
 # OLD
 @shared_task(name="merge_area_bins", bind=True, serializer=DJANGO_CEREAL_PICKLE)

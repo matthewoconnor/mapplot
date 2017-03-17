@@ -4,18 +4,18 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Name of Kml Map</label>
-			<input name="name" ng-model="kmlmap.name">
+			<input name="name" ng-model="datamap.name">
 		</md-input-container>
 	</md-content>
 
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>SODA Data Source</label>
-			<input name="data_source" ng-model="kmlmap.data_source" placeholder="(e.g. data.cityofchicago.org)" />
+			<input name="data_source" ng-model="datamap.data_source" placeholder="(e.g. data.cityofchicago.org)" />
 		</md-input-container>
 		<md-input-container flex-gt-sm>
 			<label>SODA Dataset Identifier</label>
-			<input name="dataset_identifier" ng-model="kmlmap.dataset_identifier" />
+			<input name="dataset_identifier" ng-model="datamap.dataset_identifier" />
 		</md-input-container>
 	</md-content>
 
@@ -28,22 +28,22 @@
 				md-selected-item-change="areaMapAutocomplete.selectedItemChanged(item)"
 				md-min-length="0"
 				md-item-text="item.name"
-				md-selected-item="kmlmap.area_map" >
+				md-selected-item="datamap.area_map" >
 			  <span md-highlight-text="areaMapAutocomplete.searchText" md-highlight-flags="^i">{$ item.name $}</span>
 			</md-autocomplete>
 		</md-input-container>
-		<input type="hidden" name="area_map" ng-model="kmlmap.area_map.id"/>
+		<input type="hidden" name="area_map" ng-model="datamap.area_map.id"/>
 	</md-content>
 
 	{% comment %}
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>SODA "where" clause</label>
-			<input name="search_kwargs" ng-model="kmlmap.where" />
+			<input name="search_kwargs" ng-model="datamap.where" />
 		</md-input-container>
 		<md-input-container flex-gt-sm>
 			<label>Limit (number of results handled in one request)</label>
-			<input name="limit" ng-model="kmlmap.limit" />
+			<input name="limit" ng-model="datamap.limit" />
 		</md-input-container>
 	</md-content>
 	{% endcomment %}

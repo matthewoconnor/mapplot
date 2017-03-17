@@ -28,7 +28,7 @@ urlpatterns = [
 
     url(r'^app/datamap/create/$',
         views.DataMapCreateView.as_view(), name="datamap_create"),
-    url(r'^app/datamap/import-settings/$',
+    url(r'^app/datamap/(?P<datamap_id>\d+)/import-settings/$',
         views.DataMapImportSettingsView.as_view(), name="datamap_import_settings"),
 
 ]

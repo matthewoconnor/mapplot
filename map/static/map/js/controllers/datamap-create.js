@@ -1,8 +1,8 @@
 (function(){
   angular.module("MapApplication")
-  	.controller('DataMapCreateController', function($scope, $log, $http) {
+  	.controller('DataMapCreateController', function($scope, $log, $http, $datamaps) {
   		
-    		$scope.kmlmap = {};
+    		$scope.datamap = {};
         $scope.metadata = {};
 
         $scope.current_tab = "basic-info"; // "basic-info", "settings", "import"
@@ -11,13 +11,16 @@
           $scope.current_tab = tab_name;
         }
 
+        $scope.$on("datamaps:updated", function(event, data) {
+          if ($scope.datamap.id) {
+            $scope.datamaps = $datamaps.getById($scope.datamap.id);
+          }
+        });
+
         $scope.get_metadata = function() {
           var url = "/app/kmlmap/"+$scope.kmlmap.id+"/metadata/";
           $http.get(url)
             .then(function(response){
-              if(response.data.kmlfiles){
-                $scope.kmlfile = response.data.kmlfiles[0]; 
-              }
               $scope.metadata = response.data;
             });
         };

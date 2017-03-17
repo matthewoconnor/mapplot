@@ -5,33 +5,33 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Categorize Type</label>
-			<md-select name="name" ng-model="kmlmap.categorize_type">
+			<md-select name="name" ng-model="datamap.categorize_type">
 				<md-option ng-value="'POINT'">Location Point</md-option>
 				<md-option ng-value="'LATLNG'">Latitude Longitude</md-option>
 				<md-option ng-value="'JOIN'" ng-disabled="true">Join on Common Field</md-option>
 				<md-option ng-value="'JOIN_MAP'" ng-disabled="true">Join on Field Mapping</md-option>
 			</md-select>
 		</md-input-container>
-		<div flex-gt-sm ng-show="kmlmap.categorize_type == 'LATLNG'">
+		<div flex-gt-sm ng-show="datamap.categorize_type == 'LATLNG'">
 			<md-input-container>
 				<label>Latitude Field</label><!-- Get valid options from metadata, preselect 'latitude' -->
-				<input name="name" ng-model="kmlmap.latitude_key">
+				<input name="name" ng-model="datamap.latitude_key">
 			</md-input-container>
 			<md-input-container>
 				<label>Longitude Field</label><!-- Get valid options from metadata, preselect 'longitude' -->
-				<input name="name" ng-model="kmlmap.longitude_key">
+				<input name="name" ng-model="datamap.longitude_key">
 			</md-input-container>
 		</div>
-		<div flex-gt-sm ng-show="kmlmap.categorize_type == 'POINT'">
+		<div flex-gt-sm ng-show="datamap.categorize_type == 'POINT'">
 			<md-input-container flex-gt-sm>
 				<label>Location Field</label><!-- Get valid options from metadata, preselect 'location' -->
-				<input name="name" ng-model="kmlmap.point_key">
+				<input name="name" ng-model="datamap.point_key">
 			</md-input-container>
 		</div>
-		<div flex-gt-sm ng-show="kmlmap.categorize_type == 'JOIN'">
+		<div flex-gt-sm ng-show="datamap.categorize_type == 'JOIN'">
 			<md-input-container flex-gt-sm>
 				<label>Join Field</label><!-- Get valid options from metadata, cannot determine default -->
-				<input name="name" ng-model="kmlmap.join_key">
+				<input name="name" ng-model="datamap.join_key">
 			</md-input-container>
 		</div>
 	</md-content>
@@ -42,11 +42,11 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Weight Type</label>
-			<input name="name" ng-model="kmlmap.weight_type">
+			<input name="name" ng-model="datamap.weight_type">
 		</md-input-container>
-		<md-input-container flex-gt-sm ng-show="kmlmap.weight_type == 'SUM'">
+		<md-input-container flex-gt-sm ng-show="datamap.weight_type == 'SUM'">
 			<label>Value Field</label>
-			<input name="name" ng-model="kmlmap.value_key">
+			<input name="name" ng-model="datamap.value_key">
 		</md-input-container>
 	</md-content>
 
@@ -54,7 +54,7 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Querystring</label>
-			<input name="name" ng-model="kmlmap.querystring">
+			<input name="name" ng-model="datamap.querystring">
 		</md-input-container>
 	</md-content>
 
