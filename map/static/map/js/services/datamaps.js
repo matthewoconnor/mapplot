@@ -11,7 +11,11 @@
       $log.debug("fetchAll");
       $http.get("/kmlmap/list/json/")
         .then(function(response){
-          service.data = response.data.kmlfiles // make these datamap objects?
+          var datamaps = response.data.datamaps;
+          for(var i = 0; i < datamaps.length; i++) {
+            service.data.push(new Datamap(datamaps[i]))
+          }
+        
           $rootScope.$broadcast('datamaps:updated', service.data);
           callback();
         });
@@ -54,38 +58,3 @@
 
   }]);
 })();
-
-// function Datamap(options) {
-
-//   options = options || {};
-
-//   this.id = options.id;
-
-//   this.name = options.name;
-//   this.data_source = options.data_source;
-//   this.dataset_identifier = options.dataset_identifier;
-//   this.area_map = options.area_map;
-
-//   this.categorize_type = options.categorize_type;
-//   this.latitude_key = options.latitude_key;
-//   this.longitude_key = options.longitude_key;
-//   this.point_key = options.point_key;
-//   this.join_key = options.join_key;
-
-//   this.weight_type = options.weight_type;
-//   this.value_key = options.value_key;
-//   this.querystring = options.querystring;
-//   this.join_key = options.join_key;
-
-//   this.importState = {};
-
-//   this.import = function() {
-//     // make a request to trigger import of data
-//   };
-
-//   this.pollImportState = function() {
-//     // make a request to poll state of import
-//   };
-
-
-// }

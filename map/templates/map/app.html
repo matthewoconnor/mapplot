@@ -17,7 +17,7 @@
 		<link type="text/less" rel="stylesheet" href="{% static 'map/css/material-theme-1/style.less' %}">
 		{% endcompress %}
 
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
@@ -53,7 +53,7 @@
 					      					<h4>{$ datamap.name $}</h4>
 					      				</div>
 					      				<div>
-					      					<md-button md-ink-ripple="#03A9F4" ng-click="showKmlData()" ng-show="!datamap.isLoaded && datamap.source" class="md-raised md-mini">View</md-button>
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="setGeometry()" ng-show="true" class="md-raised md-mini">View</md-button>
 				      						<md-switch ng-show="datamap.isLoaded" class="md-secondary" ng-model="datamap.isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(datamap.isVisible)">{$ datamap.isVisible ? 'Visible' : 'Hidden' $}</md-switch>
 					      				</div>
 					      			</div>

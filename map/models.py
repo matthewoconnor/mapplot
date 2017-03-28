@@ -96,7 +96,6 @@ class Area(models.Model):
                     return True
         return False
 
-
     def get_polygon_list(self):
         return [point.split(",") for point in self.polygon.split(";")]
 
@@ -111,6 +110,16 @@ class Area(models.Model):
                 "outer":ca.get_polygon_list(),
                 "inner":[dict(area=ia, polygon=ia.get_polygon_list()) for ia in ca.inner_areas.all()]
             } for ca in self.child_areas.all()]
+
+    def get_geometry(self):
+        """Almost identical to get_grouped_polygon_list, but without area instances"""
+        return [{
+            "outer":self.get_polygon_list(),
+            "inner":[ia.get_polygon_list() for ia in self.inner_areas.all()]
+        }] + [{
+            "outer":ca.get_polygon_list(),
+            "inner":[ia.get_polygon_list() for ia in ca.inner_areas.all()]
+        } for ca in self.child_areas.all()]
 
     def mbr_from_polygon(self):
         points = self.polygon.split(";")
@@ -266,6 +275,15 @@ class AreaBin(models.Model):
     value = models.FloatField(default=0.0) # value of the bin
     count = models.IntegerField(default=0) # number of rows used for bin
 
+    def get_geometry(self):
+        return {
+            "id": self.id,
+            "name": self.area.name,
+            "geometry": self.area.get_geometry(),
+            "value": self.value,
+            "count": self.count
+        }
+
 
 class DataMap(models.Model):
     """
@@ -404,79 +422,6 @@ class DataMap(models.Model):
                                 break
                     except:
                         pass
-
-            offset += limit
-
-        return area_bins
-
-    # OLD
-    def area_bins_from_soda_dataset(self, *args, **kwargs):
-        limit = kwargs.get("limit", 1000)
-        offset = kwargs.get("offset", 0)
-        iterations = kwargs.get("iterations", 1)
-        search_kwargs = kwargs.get("search_kwargs", dict())
-        lng_fieldname = kwargs.get("lng_field", "longitude")
-        lat_fieldname = kwargs.get("lat_field", "latitude")
-        on_iteration = kwargs.get("on_iteration", None)
-
-        client = self.get_socrata_client()
-
-        areas = self.area_map.areas.filter(
-            is_primary=True
-        ).prefetch_related("inner_areas", "child_areas__inner_areas")
-
-        area_bins = [dict(
-                area=area,
-                polygons=area.get_grouped_polygon_list(),
-                count=0,
-            ) for area in areas]
-
-        i = 0
-        without_coords = 0
-
-        # If callable function is passed to keep track of progress, call it
-        if on_iteration:
-            on_iteration(i, iterations)
-
-        while i < iterations:
-
-            i += 1
-
-            # If callable function is passed to keep track of progress, call it
-            if on_iteration:
-                on_iteration(i, iterations)
-
-            data = client.get(
-                self.dataset_identifier, 
-                content_type="json", 
-                limit=limit, 
-                offset=offset, **search_kwargs)
-
-            if not data:
-                print("done with data")
-                break
-            else:
-                print("data {0} to {1}".format(offset, offset + limit))
-
-            for row in data:
-
-                try:
-                    lat_value = row[lat_fieldname]
-                    lng_value = row[lng_fieldname]
-                    if isinstance(lat_value, dict) and lat_value.get("type", "") == "Point":
-                        coords = lat_value.get("coordinates")
-                        lng = float(coords[0])
-                        lat = float(coords[1])
-                    else:
-                        lng = float(lng_value)
-                        lat = float(lat_value)
-
-                    for ab in area_bins:
-                        if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
-                            ab["count"] += 1
-                            break
-                except:
-                    without_coords += 1
 
             offset += limit
 

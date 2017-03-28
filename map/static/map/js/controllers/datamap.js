@@ -1,8 +1,8 @@
 (function(){
 	angular.module("MapApplication")
-		.controller('DataMapController', function($scope, $log, $http, $interval) {
+		.controller('DataMapController', function($scope, $log, $http, $interval, $datamaps) {
 
-	  		$scope.kmldata = null;
+			$scope.data = null;
 
 	  		$scope.isLoading = false;
 	  		$scope.isLoaded = false;
@@ -59,44 +59,16 @@
 	  			}
 	  		}
 
-	  		$scope.watchTaskProgress = function(task_ids_string) {
-
-	  			var taskwatcher = $interval(function(){
-	  				$http.get("/app/task/progress/", {"params":{"task_ids":task_ids_string}}).then(function(response){
-		  				if(response.data.status == "PROGRESS") {
-		  					$scope.watchingProgress = true;
-		  					$scope.taskPending = false;
-		  					$scope.progressValue = response.data.complete * 100.0;
-		  				}else if(response.data.status == "PENDING"){
-		  					$scope.taskPending = true;
-		  					$scope.watchingProgress = false
-		  				}else{
-		  					$interval.cancel(taskwatcher);
-		  					$scope.progressValue = 100;
-		  					$scope.taskPending = false;
-		  					$scope.watchingProgress = false;
-
-		  					// refetch at the end 
-		  					$scope.fetchDataMap();
-		  				}
-		  			});
-	  			}, 1000);
-
-	  		}
-
-	  		$scope.fetchDataMap = function() {
-
+	  		$scope.setGeometry = function() {
 	  			$scope.isLoading = true;
 
-	  			$http.get("/kmlmap/list/json/", {"params":{"ids":$scope.datamap.id}})
-					.then(function(response){
-						if(response.data.datamaps){
-							$scope.datamap = response.data.datamaps[0];	
-						}
-						$scope.isLoading = false;
-					});
+	  			$scope.datamap.getGeometry()
+	  				.then($scope.datamap.setCesiumGeometry)
+	  				.then(function(areabins){
+	  					$scope.datamap.addToCesiumMap($scope.cesium);
+	  					$scope.isLoading = false;
+	  				});
 	  		}
-
 
 	  		// ON INIT
 	  		if($scope.datamap.task_ids) {

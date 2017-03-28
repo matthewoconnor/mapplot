@@ -12,37 +12,6 @@ def blank_task(name="No Name"):
     # use at front of chain if followed by a group
     return name
 
-
-# OLD
-@shared_task(name="get_kmlmap_areabins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
-def get_kmlmap_areabins(self, kmlmap, **kwargs):
-
-    task = self
-    def update_task_progress(i, total):
-        task.update_state(state='PROGRESS', meta={'current': i, 'total': total})
-    kwargs["on_iteration"] = update_task_progress
-
-    return kmlmap.area_bins_from_soda_dataset(**kwargs)
-
-
-# OLD
-@shared_task(name="merge_area_bins", bind=True, serializer=DJANGO_CEREAL_PICKLE)
-def merge_area_bins(self, area_bins_list, kmlmap):
-
-    area_bins = [item for sublist in area_bins_list for item in sublist]
-    TOTAL = len(area_bins)
-    merged_bins = []
-
-    for i, area_bin in enumerate(area_bins):
-        self.update_state(state='PROGRESS', meta={'current': i, 'total': TOTAL}) # tracking progress
-        merged_bin = next((ab for ab in merged_bins if ab["area"] == area_bin["area"]), None)
-        if not merged_bin:
-            merged_bins.append(area_bin)
-        else:
-            merged_bin["count"] += area_bin["count"]
-
-    return kmlmap.save_kmlfile_from_area_bins(merged_bins)
-
 # KEEP
 @shared_task(name="import_areas_from_kml_file", bind=True, serializer=DJANGO_CEREAL_PICKLE)
 def import_areas_from_kml_file(self, areamap, **kwargs):
@@ -126,17 +95,4 @@ def poll_task_progress(task_id_list):
     return dict(
         status=status,
         complete=fraction_complete)
-
-
-
-
-
-
-
-
-
-
-
-
-
 

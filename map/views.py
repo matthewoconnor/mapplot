@@ -2,42 +2,16 @@ from django.views.generic import View, FormView
 from django.http import JsonResponse
 
 from .models import DataMap, AreaMap
-from .utils import start_kmlmap_task, start_datamap_import_task
+from .utils import start_datamap_import_task
 from .tasks import poll_task_progress
 from .forms import KmlmapForm, DataMapImportSettingsForm
 
 
-class KmlmapCreateViewPart(FormView):
-    template_name = "map/app/kmlmap-form.html"
-    form_class = KmlmapForm
-
-    def form_valid(self, form):
-        kmlmap = form.save()
-
-        task_kwargs = dict(
-            where=form.cleaned_data.get("where"),
-            limit=form.cleaned_data.get("limit"),
-            categorize_method=form.cleaned_data.get("categorize_method"), # latlng, point, match
-            lat_field=form.cleaned_data.get("lat_field"),
-            lng_field=form.cleaned_data.get("lng_field"),
-            point_field=form.cleaned_data.get("point_field"),
-            match_soda_field=form.cleaned_data.get("match_soda_field"),
-            match_area_field=form.cleaned_data.get("match_area_field")
-        )
-
-        task_ids = start_kmlmap_task(kmlmap, **task_kwargs)
-
-        response_context = dict(success=True, kmlmap=dict(id=kmlmap.id, name=kmlmap.name), task_ids=task_ids)
-
-        return JsonResponse(response_context)
-
-    def form_invalid(self, form):
-        response_context = dict(success=False, messages=form.errors)
-        return JsonResponse(response_context)
-
-
 # NEW DATAMAP CREATE VIEWS
 class DataMapCreateView(FormView):
+    """
+    View to create new datamap with basic-info settings
+    """
     template_name = "map/app/kmlmap-form.html"
     form_class = KmlmapForm
 
@@ -49,6 +23,26 @@ class DataMapCreateView(FormView):
     def form_invalid(self, form):
         response_context = dict(success=False, messages=form.errors)
         return JsonResponse(response_context)
+
+
+def DataMapUpdateView(DataMapCreateView):
+
+    def setup(self):
+        self.datamap = self.kwargs.get("datamap_id")
+        return super()
+
+    def get(self, request, *args, **kwargs):
+        self.setup()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.setup()
+        return super().post(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        form_kwargs = super().get_form_kwargs()
+        form_kwargs["instance"] = self.datamap
+        return form_kwargs
 
 
 class DataMapImportSettingsView(FormView):
@@ -89,11 +83,11 @@ class DataMapListJson(View):
         filter_ids = request.GET.get("ids", None)
         if filter_ids:
             filter_id_list = filter_ids.split(",")
-            kmlmaps = DataMap.objects.filter(id__in=filter_id_list)
+            datamaps = DataMap.objects.filter(id__in=filter_id_list)
         else:
-            kmlmaps = DataMap.objects.all(); 
+            datamaps = DataMap.objects.all()
         context = dict(
-            kmlfiles=[dict(id=km.id, name=km.name, source=km.get_file_url()) for km in kmlmaps]
+            datamaps=[dict(id=dm.id, name=dm.name, source=dm.get_file_url()) for dm in datamaps]
         )
         return JsonResponse( context )
 
@@ -125,6 +119,26 @@ class SocrataDatamapMetadata(View):
         datamap_id = kwargs.get("datamap_id")
         datamap = DataMap.objects.get(id=datamap_id)
         metadata = datamap.get_socrata_client().get_metadata(datamap.dataset_identifier)
-        return JsonReponse(metadata)
+        return JsonResponse(metadata)
 
 
+class DataMapGeometry(View):
+
+    def get(self, request, *args, **kwargs):
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        geometry = [ab.get_geometry() for ab in datamap.areabin_set.all()]
+
+        datamap_json = {
+            "id": datamap.id,
+            "name": datamap.name,
+            "geometry": geometry,
+            "max_count": max(ab["count"] for ab in geometry),
+            "min_count": min(ab["count"] for ab in geometry)
+        }
+
+        context = dict(success=True, data=datamap_json)
+
+        return JsonResponse(context)
