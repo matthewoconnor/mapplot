@@ -78,8 +78,8 @@ function Datamap(options) {
 					"hierarchy" : {
 						"positions":outer_polygon,
 						"holes":inner_polygons	
-					},
-					"extrudedHeight":areabin.count
+					}
+					// "extrudedHeight":areabin.count
 				};
 				cesium_polygons.push(polygonGeometry);
 			}
@@ -105,6 +105,36 @@ function Datamap(options) {
 				areabin.cesium.entities.push(entity);
 			}
 		}
+  }
+
+  this.setCountsMetadata = function() {
+  	// calculates the max and min counts for the datamap's areabins
+
+  	self.counts = {
+  		"data":self.areabins.map(function(ab) {return ab.count;})
+  	}
+  	self.counts.max = Math.max.apply(null, self.counts.data);
+  	self.counts.min = Math.min.apply(null, self.counts.data);
+  }
+
+  this.setCesiumEntitiesColor = function() {
+  	var max = self.counts.max;
+  	var min = self.counts.min;
+  	var range = max - min;
+
+  	function heatMapColorforValue(value){
+		  var h = (1.0 - ((value - min)/range)) * (240.0/360.0);
+		  return Cesium.Color.fromHsl(h, 1, 0.5);
+		}
+
+  	for(var i = 0; i < self.areabins.length; i++){
+  		var ab = self.areabins[i];
+  		var color = heatMapColorforValue(ab.count);
+  		for(var j = 0; j < ab.cesium.entities.length; j++){
+  			var e = ab.cesium.entities[j];
+  			e.polygon.material = color;
+  		}
+  	}
   }
 
 }

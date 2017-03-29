@@ -66,6 +66,10 @@
 	  				.then($scope.datamap.setCesiumGeometry)
 	  				.then(function(areabins){
 	  					$scope.datamap.addToCesiumMap($scope.cesium);
+	  				})
+	  				.then($scope.datamap.setCountsMetadata)
+	  				.then($scope.datamap.setCesiumEntitiesColor)
+	  				.then(function(){
 	  					$scope.isLoading = false;
 	  				});
 	  		}
