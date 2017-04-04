@@ -21,6 +21,10 @@
         });
     };
 
+    service.editDatamap = function(datamap_id) {
+      $rootScope.$broadcast('datamaps:edit_datamap', datamap_id);
+    }
+
     service.findByAttr = function(attr, val) {
       var result = service.data.find(function(datamap){
         return datamap[attr] == val;

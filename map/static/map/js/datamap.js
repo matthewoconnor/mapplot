@@ -22,7 +22,10 @@ function Datamap(options) {
   this.querystring = options.querystring;
 
   // non-model fields
-  this.import_state = {};
+  this.access = {
+  	"view":null // displayed, hidden, null
+  	// "available":options.access.available?:, // available, unavailable, loading, null
+  }
   this.geometry = [];
   this.areabins = [];
 
@@ -135,6 +138,26 @@ function Datamap(options) {
   			e.polygon.material = color;
   		}
   	}
+  }
+
+  this.hideCesiumEntities = function() {
+    for(var i = 0; i < self.areabins.length; i++){
+      var ab = self.areabins[i];
+      for(var j = 0; j < ab.cesium.entities.length; j++){
+        var e = ab.cesium.entities[j];
+        e.show = false;
+      }
+    }
+  }
+
+  this.showCesiumEntities = function() {
+    for(var i = 0; i < self.areabins.length; i++){
+      var ab = self.areabins[i];
+      for(var j = 0; j < ab.cesium.entities.length; j++){
+        var e = ab.cesium.entities[j];
+        e.show = true;
+      }
+    }
   }
 
 }

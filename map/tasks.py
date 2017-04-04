@@ -7,12 +7,13 @@ from django_cereal.pickle import DJANGO_CEREAL_PICKLE
 
 logger = get_task_logger(__name__)
 
+
 @shared_task(name="blank_task", serializer=DJANGO_CEREAL_PICKLE)
 def blank_task(name="No Name"):
     # use at front of chain if followed by a group
     return name
 
-# KEEP
+
 @shared_task(name="import_areas_from_kml_file", bind=True, serializer=DJANGO_CEREAL_PICKLE)
 def import_areas_from_kml_file(self, areamap, **kwargs):
 
@@ -31,7 +32,10 @@ def get_datamap_areabins(self, datamap, **kwargs):
     the_task = self
 
     def update_task_progress(i, total):
-        the_task.update_state(state='PROGRESS', meta={'current': i, 'total': total})
+        the_task.update_state(state='PROGRESS', meta={
+            'current': i,
+            'total': total,
+            'message': 'Importing data'})
     kwargs["on_iteration"] = update_task_progress
 
     return datamap.areabin_dict_from_socrata_dataset(**kwargs)
@@ -45,7 +49,10 @@ def merge_datamap_areabins(self, areabins_list, datamap):
     merged_bins = []
 
     for i, areabin in enumerate(areabins):
-        self.update_state(state='PROGRESS', meta={'current': i, 'total': TOTAL}) # tracking progress
+        self.update_state(state='PROGRESS', meta={
+            'current': i, 
+            'total': TOTAL,
+            'message': 'Saving data'}) # tracking progress
         merged_bin = next((ab for ab in merged_bins if ab["area"] == areabin["area"]), None)
         if not merged_bin:
             merged_bins.append(areabin)
@@ -65,19 +72,19 @@ def poll_task_progress(task_id_list):
 
     for task_id in task_id_list:
         try:
-            task = AsyncResult(task_id)
-            state = task.state
+            _task = AsyncResult(task_id)
+            state = _task.state
 
             print("TASK STATE", state)
 
             if state in ["SUCCESS", "FAILURE", "REVOKED"]:
                 has_started = True
                 fraction_complete += (1.0/task_total)
-            elif state == "PROGRESS" and task.result:
+            elif state == "PROGRESS" and _task.result:
                 has_started = True
                 is_complete = False
-                total = task.result.get("total", 1)
-                current = task.result.get("current", 1)
+                total = _task.result.get("total", 1)
+                current = _task.result.get("current", 1)
                 fraction_complete += (current/total)/task_total
             else:
                 is_complete = False

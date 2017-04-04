@@ -49,12 +49,14 @@
 				      			ng-click="stopPropagation($event)">
 				      			<div layout="column" flex>
 				      				<div layout="row">
-					      				<div flex>
+					      				<div flex="80">
 					      					<h4>{$ datamap.name $}</h4>
 					      				</div>
-					      				<div>
-					      					<md-button md-ink-ripple="#03A9F4" ng-click="setGeometry()" ng-show="true" class="md-raised md-mini">View</md-button>
-				      						<md-switch ng-show="datamap.isLoaded" class="md-secondary" ng-model="datamap.isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(datamap.isVisible)">{$ datamap.isVisible ? 'Visible' : 'Hidden' $}</md-switch>
+					      				<div flex="20">
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="setGeometry()" ng-show="!isLoaded" class="md-raised oc-mini">View</md-button>
+					      					<md-switch ng-show="isLoaded" class="md-secondary" ng-model="isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(isVisible)"></md-switch>
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="edit()" ng-show="true" class="md-raised oc-mini">Edit</md-button>
+				      						
 					      				</div>
 					      			</div>
 					      			<div layout="row">

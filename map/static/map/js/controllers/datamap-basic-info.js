@@ -17,11 +17,18 @@
           }
         }
 
-        $scope.submitForm =function() {
+        $scope.getSubmitData = function() {
+          return {
+            "name":$scope.datamap.name,
+            "data_source":$scope.datamap.data_source, 
+            "dataset_identifier":$scope.datamap.dataset_identifier, 
+            "area_map":$scope.datamap.area_map.id
+          }
+        }
 
-          var submitData = angular.copy($scope.datamap);
-          submitData.area_map = $scope.datamap.area_map.id;
-          submitData = $.param(submitData);
+        $scope.submitForm = function() {
+
+          var submitData = $.param($scope.getSubmitData());
 
           var config = {
               headers : {
@@ -29,16 +36,33 @@
               }
           }
 
-          $http.post("/app/datamap/create/", submitData, config).then(function(response){
+          if($scope.datamap.id) {
+            $scope._submitUpdate(submitData, config);
+          }else{
+            $scope._submitCreate(submitData, config);
+          }
+          
+        }
+
+        $scope._submitCreate = function(data, config) {
+          $http.post("/app/datamap/create/", data, config).then(function(response){
             if(response.data.success && response.data.datamap_id){
               $scope.datamap.id = response.data.datamap_id;
+              $scope.datamap = new Datamap($scope.datamap);
               $datamaps.data.unshift($scope.datamap);
               $scope.change_tab("settings");
             }
           });
-          
         }
 
+        $scope._submitUpdate = function(data, config) {
+          $http.post("/app/datamap/"+$scope.datamap.id+"/update/", data, config).then(function(response){
+            if(response.data.success && response.data.datamap_id){
+              $scope.change_tab("settings");
+            }
+          });
+        }
+ 
     });
 })();
 

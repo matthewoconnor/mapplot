@@ -55,4 +55,5 @@ def start_datamap_import_task(datamap):
     async_result = workflow.apply_async()
 
     progress_task_ids = [ar.task_id for ar in async_result.parent.children] + [async_result.task_id]
+
     return progress_task_ids

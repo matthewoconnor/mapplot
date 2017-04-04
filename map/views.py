@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from .models import DataMap, AreaMap
 from .utils import start_datamap_import_task
 from .tasks import poll_task_progress
-from .forms import KmlmapForm, DataMapImportSettingsForm
+from .forms import DataMapForm, DataMapImportSettingsForm
 
 
 # NEW DATAMAP CREATE VIEWS
@@ -13,7 +13,7 @@ class DataMapCreateView(FormView):
     View to create new datamap with basic-info settings
     """
     template_name = "map/app/kmlmap-form.html"
-    form_class = KmlmapForm
+    form_class = DataMapForm
 
     def form_valid(self, form):
         datamap = form.save()
@@ -25,10 +25,11 @@ class DataMapCreateView(FormView):
         return JsonResponse(response_context)
 
 
-def DataMapUpdateView(DataMapCreateView):
+class DataMapUpdateView(DataMapCreateView):
 
     def setup(self):
-        self.datamap = self.kwargs.get("datamap_id")
+        datamap_id = self.kwargs.get("datamap_id")
+        self.datamap = DataMap.objects.get(id=datamap_id)
         return super()
 
     def get(self, request, *args, **kwargs):
@@ -87,7 +88,21 @@ class DataMapListJson(View):
         else:
             datamaps = DataMap.objects.all()
         context = dict(
-            datamaps=[dict(id=dm.id, name=dm.name, source=dm.get_file_url()) for dm in datamaps]
+            datamaps=[dict(
+                id=dm.id,
+                name=dm.name,
+                data_source=dm.data_source,
+                dataset_identifier=dm.dataset_identifier,
+                area_map=dict(id=dm.area_map.id, name=dm.area_map.name),
+                categorize_type=dm.categorize_type,
+                latitude_key=dm.latitude_key,
+                longitude_key=dm.longitude_key,
+                point_key=dm.point_key,
+                join_key=dm.join_key,
+                weight_type=dm.weight_type,
+                value_key=dm.value_key,
+                querystring=dm.querystring,
+                source=dm.get_file_url()) for dm in datamaps]
         )
         return JsonResponse( context )
 

@@ -2,8 +2,6 @@
 	angular.module("MapApplication")
 		.controller('DataMapController', function($scope, $log, $http, $interval, $datamaps) {
 
-			$scope.data = null;
-
 	  		$scope.isLoading = false;
 	  		$scope.isLoaded = false;
 	  		$scope.isVisible = false;
@@ -51,11 +49,11 @@
   				}
 	  		}
 
-	  		$scope.toggleVisibility = function(isvisible) {
-	  			if(isvisible) {
-	  				$scope.showKmlData();
+	  		$scope.toggleVisibility = function() {
+	  			if($scope.isVisible) {
+	  				$scope._show();
 	  			}else{
-	  				$scope.hideKmlData();
+	  				$scope._hide();
 	  			}
 	  		}
 
@@ -71,12 +69,28 @@
 	  				.then($scope.datamap.setCesiumEntitiesColor)
 	  				.then(function(){
 	  					$scope.isLoading = false;
+	  					$scope.isLoaded = true;
+	  					$scope.isVisible = true;
+	  					$scope.$apply();
 	  				});
+	  		}
+
+	  		$scope._hide = function() {
+	  			$scope.datamap.hideCesiumEntities();
+	  		}
+
+	  		$scope._show = function() {
+	  			$scope.datamap.showCesiumEntities();
+	  		}
+
+	  		$scope.edit = function() {
+	  			$datamaps.editDatamap($scope.datamap.id);
+	  			$scope.navigate("create_datamap");
 	  		}
 
 	  		// ON INIT
 	  		if($scope.datamap.task_ids) {
-	  			$scope.watchTaskProgress($scope.datamap.task_ids.join(","));
+	  			$datamaps.watchImportProgress($scope.datamap.id);
 	  		}
 
 	  	});

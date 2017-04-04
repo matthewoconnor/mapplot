@@ -318,7 +318,7 @@ class DataMap(models.Model):
 
     kml_file = models.FileField(upload_to="uploads/datamap/", null=True, blank=True)
 
-    task_id = models.CharField(max_length=256, blank=True) # For tracking progress
+    task_id = models.CharField(max_length=256, blank=True)  # For tracking progress
 
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
@@ -414,8 +414,8 @@ class DataMap(models.Model):
             elif self.categorize_type == "LATLNG":
                 for row in data:
                     try:
-                        lng = float(row[lng_value])
-                        lat = float(row[lat_value])
+                        lng = float(row[self.latitude_key])
+                        lat = float(row[self.longitude_key])
                         for ab in area_bins:
                             if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
                                 ab["count"] += 1

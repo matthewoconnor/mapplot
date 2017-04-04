@@ -13,8 +13,12 @@
 
         $scope.$on("datamaps:updated", function(event, data) {
           if ($scope.datamap.id) {
-            $scope.datamaps = $datamaps.getById($scope.datamap.id);
+            $scope.datamap = $datamaps.getById($scope.datamap.id);
           }
+        });
+
+        $scope.$on("datamaps:edit_datamap", function(event, datamap_id) {
+          $scope.datamap = $datamaps.getById(datamap_id);
         });
 
         $scope.get_metadata = function() {

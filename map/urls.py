@@ -27,6 +27,8 @@ urlpatterns = [
         views.SocrataDatamapMetadata.as_view(), name="kmlmap_metadata"),
     url(r'^app/datamap/create/$',
         views.DataMapCreateView.as_view(), name="datamap_create"),
+    url(r'^app/datamap/(?P<datamap_id>\d+)/update/$',
+        views.DataMapUpdateView.as_view(), name="datamap_update"),
     url(r'^app/datamap/(?P<datamap_id>\d+)/import-settings/$',
         views.DataMapImportSettingsView.as_view(), name="datamap_import_settings"),
 
