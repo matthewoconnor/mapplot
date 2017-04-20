@@ -72,6 +72,7 @@
 	  					$scope.isLoaded = true;
 	  					$scope.isVisible = true;
 	  					$scope.$apply();
+	  					$scope.datamap.flyToCesiumEntities($scope.cesium);
 	  				});
 	  		}
 
@@ -80,7 +81,9 @@
 	  		}
 
 	  		$scope._show = function() {
-	  			$scope.datamap.showCesiumEntities();
+	  			$scope.datamap.showCesiumEntities().then(function(entities){
+	  				$scope.datamap.flyToCesiumEntities($scope.cesium, entities);
+	  			});
 	  		}
 
 	  		$scope.edit = function() {

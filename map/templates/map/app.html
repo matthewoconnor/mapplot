@@ -79,7 +79,7 @@
 				 			<h1><span>Kml File App</span></h1>
 				 			<span flex></span>
 				 			<md-button ng-click="navigate('map')" aria-label="Map View">Map</md-button>
-				 			<md-button ng-click="navigate('create_datamap')" aria-label="Toggle Menu">Create Data Map</md-button>
+				 			<md-button ng-click="createNewDatamap()" aria-label="Toggle Menu">Create Data Map</md-button>
 				 		</div>
 				 	</md-toolbar>
 
@@ -91,7 +91,8 @@
 						<md-content ng-controller="DataMapCreateController" flex layout-padding>
 							<md-tabs md-dynamic-height md-border-bottom>
 						      <md-tab md-active="current_tab == 'basic-info'" 
-						      		  md-on-select="change_tab('basic-info')" 
+						      		  md-on-select="change_tab('basic-info')"
+						      		  ng-disabled="editing_state == 'import'"
 						      		  label="Data Map Basic Info">
 						        <md-content ng-controller="DataMapBascInfoController" class="md-padding">
 						          <h1 class="md-display-2">Data Map Basic Info</h1>
@@ -100,6 +101,7 @@
 						      </md-tab>
 						      <md-tab md-active="current_tab == 'settings'"
 						      		  md-on-select="change_tab('settings')"
+						      		  ng-disabled="editing_state != 'edit'"
 						      		  label="Data Import Settings">
 						        <md-content ng-controller="DataMapImportSettingsController" class="md-padding">
 						          <h1 class="md-display-2">Data Import Settings</h1>
@@ -108,6 +110,7 @@
 						      </md-tab>
 						      <md-tab md-active="current_tab == 'import'" 
 						      		  md-on-select="change_tab('import')"
+						      		  ng-disabled="editing_state != 'import'"
 						      		  label="Import Data">
 						        <md-content ng-controller="DataMapImportProgressController" class="md-padding">
 						          <h1 class="md-display-2">Import Data</h1>

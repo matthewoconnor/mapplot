@@ -6,9 +6,14 @@
         $scope.metadata = {};
 
         $scope.current_tab = "basic-info"; // "basic-info", "settings", "import"
+        $scope.editing_state = "new"; // new, edit, import
 
         $scope.change_tab = function(tab_name) {
           $scope.current_tab = tab_name;
+        }
+
+        $scope.change_editing_state = function(state) {
+          $scope.editing_state = state;
         }
 
         $scope.$on("datamaps:updated", function(event, data) {
@@ -19,6 +24,14 @@
 
         $scope.$on("datamaps:edit_datamap", function(event, datamap_id) {
           $scope.datamap = $datamaps.getById(datamap_id);
+          $scope.current_tab = "basic-info";
+          $scope.change_editing_state("edit");
+        });
+
+        $scope.$on("datamaps:new_datamap", function(event, datamap_id) {
+          $scope.datamap = {};
+          $scope.current_tab = "basic-info";
+          $scope.change_editing_state("new");
         });
 
         $scope.get_metadata = function() {

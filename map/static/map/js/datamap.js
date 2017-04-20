@@ -151,13 +151,38 @@ function Datamap(options) {
   }
 
   this.showCesiumEntities = function() {
+    
+    return Promise.resolve().then(function(){
+      var entities = [];
+      for(var i = 0; i < self.areabins.length; i++){
+        var ab = self.areabins[i];
+        for(var j = 0; j < ab.cesium.entities.length; j++){
+          var e = ab.cesium.entities[j];
+          entities.push(e);
+          e.show = true;
+        }
+      }
+      return entities;
+    });
+  }
+
+  this.flyToCesiumEntities = function(cesium, entities) {
+    if (!entities) {
+      entities = self.get_entities();
+    }
+    return cesium.flyTo(entities)
+  }
+
+  this.get_entities = function() {
+    var entities = [];
     for(var i = 0; i < self.areabins.length; i++){
       var ab = self.areabins[i];
       for(var j = 0; j < ab.cesium.entities.length; j++){
         var e = ab.cesium.entities[j];
-        e.show = true;
+        entities.push(e);
       }
     }
+    return entities;
   }
 
 }

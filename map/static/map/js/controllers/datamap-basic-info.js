@@ -50,6 +50,7 @@
               $scope.datamap.id = response.data.datamap_id;
               $scope.datamap = new Datamap($scope.datamap);
               $datamaps.data.unshift($scope.datamap);
+              $scope.change_editing_state("edit");
               $scope.change_tab("settings");
             }
           });
@@ -58,6 +59,7 @@
         $scope._submitUpdate = function(data, config) {
           $http.post("/app/datamap/"+$scope.datamap.id+"/update/", data, config).then(function(response){
             if(response.data.success && response.data.datamap_id){
+              $scope.change_editing_state("edit");
               $scope.change_tab("settings");
             }
           });

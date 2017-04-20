@@ -25,6 +25,11 @@
 				$scope.view = viewname;
 			};
 
+			$scope.createNewDatamap = function() {
+				$datamaps.newDatamap();
+				$scope.navigate("create_datamap");
+			}
+
 			$scope.stopPropagation=function(ev){
 		        // don't delete this method it is required for multiple checkbox in list item.
               	ev.stopPropagation();

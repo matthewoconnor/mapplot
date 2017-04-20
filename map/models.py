@@ -16,6 +16,7 @@ from .utils import kml_hex_color_from_value_range, kml_height_from_value_range
 
 AREA_TYPES = (
     ("UNCATEGORIZED", "Uncategorized"),
+    ("BLOCK", "Block"),
     ("NEIGHBORHOOD", "Neighborhood"),
     ("WARD", "Ward"),
     ("DISTRICT", "District"),

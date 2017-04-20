@@ -22,7 +22,11 @@
     };
 
     service.editDatamap = function(datamap_id) {
-      $rootScope.$broadcast('datamaps:edit_datamap', datamap_id);
+      $rootScope.$broadcast("datamaps:edit_datamap", datamap_id);
+    }
+
+    service.newDatamap = function() {
+      $rootScope.$broadcast("datamaps:new_datamap");
     }
 
     service.findByAttr = function(attr, val) {
