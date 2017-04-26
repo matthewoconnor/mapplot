@@ -17,7 +17,7 @@
 		<link type="text/less" rel="stylesheet" href="{% static 'map/css/material-theme-1/style.less' %}">
 		{% endcompress %}
 
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
@@ -39,29 +39,30 @@
 			        class="md-sidenav-left"
 			        md-component-id="left"
 			        md-is-locked-open="$mdMedia('gt-sm')"
-			        md-whiteframe="4"
-			        layout-fill>
+			        md-whiteframe="4">
 
 		        	<md-content flex>
 		        		<div class="nav-custom-list" flex layout-padding>
 							<div
-				      			ng-repeat="kmlfile in kmlfiles" 
-				      			ng-controller="KmlMapController"
+				      			ng-repeat="datamap in datamaps" 
+				      			ng-controller="DataMapController"
 				      			ng-click="stopPropagation($event)">
 				      			<div layout="column" flex>
 				      				<div layout="row">
-					      				<div flex>
-					      					<h4>{$ kmlfile.title $}</h4>
+					      				<div flex="80">
+					      					<h4>{$ datamap.name $}</h4>
 					      				</div>
-					      				<div>
-					      					<md-button md-ink-ripple="#03A9F4" ng-click="showKmlData()" ng-show="!isLoaded && kmlfile.source" class="md-raised md-mini">View</md-button>
-				      						<md-switch ng-show="isLoaded" class="md-secondary" ng-model="isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(isVisible)">{$ isVisible ? 'Visible' : 'Hidden' $}</md-switch>
+					      				<div flex="20">
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="setGeometry()" ng-show="!isLoaded" class="md-raised oc-mini">View</md-button>
+					      					<md-switch ng-show="isLoaded" class="md-secondary" ng-model="isVisible" aria-label="Visible"  aria-label="Switch 1" ng-change="toggleVisibility(isVisible)"></md-switch>
+					      					<md-button md-ink-ripple="#03A9F4" ng-click="edit()" ng-show="true" class="md-raised oc-mini">Edit</md-button>
+				      						
 					      				</div>
 					      			</div>
 					      			<div layout="row">
-					      				<md-progress-linear ng-show="isLoading" md-mode="indeterminate"></md-progress-linear>
-					      				<md-progress-linear ng-show="watchingProgress" md-mode="determinate" value="{$ progressValue $}"></md-progress-linear>
-					      				<md-progress-linear ng-show="taskPending" md-mode="query"></md-progress-linear>
+					      				<md-progress-linear ng-show="datamap.isLoading" md-mode="indeterminate"></md-progress-linear>
+					      				<md-progress-linear ng-show="datamap.watchingProgress" md-mode="determinate" value="{$ datamap.progressValue $}"></md-progress-linear>
+					      				<md-progress-linear ng-show="datamap.taskPending" md-mode="query"></md-progress-linear>
 					      			</div>
 				      			</div>
 				      		</div>
@@ -78,7 +79,7 @@
 				 			<h1><span>Kml File App</span></h1>
 				 			<span flex></span>
 				 			<md-button ng-click="navigate('map')" aria-label="Map View">Map</md-button>
-				 			<md-button ng-click="navigate('create')" aria-label="Toggle Menu">Create</md-button>
+				 			<md-button ng-click="createNewDatamap()" aria-label="Toggle Menu">Create Data Map</md-button>
 				 		</div>
 				 	</md-toolbar>
 
@@ -86,13 +87,42 @@
 				 		<div layout="column" id="worldmap"></div>
 				 	</md-content>
 
-				 	<div layout="column" flex ng-show="view == 'create'">
-						<md-content ng-controller="KmlMapCreateController" flex layout-padding>
-						{% include 'map/app/kmlmap-form.html' %}
+					<div layout="column" flex ng-show="view == 'create_datamap'">
+						<md-content ng-controller="DataMapCreateController" flex layout-padding>
+							<md-tabs md-dynamic-height md-border-bottom>
+						      <md-tab md-active="current_tab == 'basic-info'" 
+						      		  md-on-select="change_tab('basic-info')"
+						      		  ng-disabled="editing_state == 'import'"
+						      		  label="Data Map Basic Info">
+						        <md-content ng-controller="DataMapBascInfoController" class="md-padding">
+						          <h1 class="md-display-2">Data Map Basic Info</h1>
+						          {% include 'map/app/datamap-basic-info-form.html' %}
+						        </md-content>
+						      </md-tab>
+						      <md-tab md-active="current_tab == 'settings'"
+						      		  md-on-select="change_tab('settings')"
+						      		  ng-disabled="editing_state != 'edit'"
+						      		  label="Data Import Settings">
+						        <md-content ng-controller="DataMapImportSettingsController" class="md-padding">
+						          <h1 class="md-display-2">Data Import Settings</h1>
+						          {% include 'map/app/datamap-import-settings-form.html' %}
+						        </md-content>
+						      </md-tab>
+						      <md-tab md-active="current_tab == 'import'" 
+						      		  md-on-select="change_tab('import')"
+						      		  ng-disabled="editing_state != 'import'"
+						      		  label="Import Data">
+						        <md-content ng-controller="DataMapImportProgressController" class="md-padding">
+						          <h1 class="md-display-2">Import Data</h1>
+						          {% include 'map/app/datamap-import-progress.html' %}
+						        </md-content>
+						      </md-tab>
+						    </md-tabs>
 						</md-content>
 					</div>
 
 				 </div>
+
 			</section>
 
 		</div>	

@@ -1,8 +1,12 @@
 {% load compress %}
 {% load static %}
 
-
+<script type="text/javascript" src="{% static 'map/js/datamap.js' %}"></script>
 <script type="text/javascript" src="{% static 'map/js/app.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/services/datamaps.js' %}"></script>
 <script type="text/javascript" src="{% static 'map/js/controllers/map-application.js' %}"></script>
-<script type="text/javascript" src="{% static 'map/js/controllers/kmlmap.js' %}"></script>
-<script type="text/javascript" src="{% static 'map/js/controllers/kmlmap-create.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/controllers/datamap.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/controllers/datamap-create.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/controllers/datamap-basic-info.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/controllers/datamap-import-settings.js' %}"></script>
+<script type="text/javascript" src="{% static 'map/js/controllers/datamap-import-progress.js' %}"></script>

@@ -7,25 +7,25 @@
         <Folder id="FeatureLayer0">
             <name>{{kml_map.name}}</name>
             <Snippet></Snippet>
-            {% for area_bin in area_bins %}
-            <Placemark id="{{kml_map.id}}_{{area_bin.area.id}}">
-                <name>{{area_bin.area.name}}</name>
+            {% for areabin in areabins %}
+            <Placemark id="{{kml_map.id}}_{{areabin.area.id}}">
+                <name>{{areabin.area.name}}</name>
                 <styleUrl>#BinStyle</styleUrl>
                 <Style>
                     <PolyStyle>
-                        <color>{{area_bin.color}}</color>
+                        <color>{{areabin.color}}</color>
                         <outline>1</outline>
                     </PolyStyle>
                 </Style>
                 <MultiGeometry>
-                {% for polygon in area_bin.polygons %}
+                {% for polygon in areabin.polygons %}
                     <Polygon>
                       <extrude>1</extrude>
                       <altitudeMode>relativeToGround</altitudeMode>
                       <outerBoundaryIs>
                         <LinearRing>
                             <coordinates>
-                                {% for point in polygon.outer %}{{point.0}},{{point.1}},{{area_bin.height}}
+                                {% for point in polygon.outer %}{{point.0}},{{point.1}},{{areabin.height}}
                                 {% endfor %}
                             </coordinates>
                         </LinearRing>
@@ -34,7 +34,7 @@
                       <innerBoundaryIs>
                         <LinearRing>
                             <coordinates>
-                                {% for point in inner.polygon %}{{point.0}},{{point.1}},{{area_bin.height}}
+                                {% for point in inner.polygon %}{{point.0}},{{point.1}},{{areabin.height}}
                                 {% endfor %}
                             </coordinates>
                         </LinearRing>

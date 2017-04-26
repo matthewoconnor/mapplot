@@ -1,0 +1,5 @@
+<div layout="row">
+	<md-progress-linear ng-show="datamap.isLoading" md-mode="indeterminate"></md-progress-linear>
+	<md-progress-linear ng-show="datamap.watchingProgress" md-mode="determinate" value="{$ datamap.progressValue $}"></md-progress-linear>
+	<md-progress-linear ng-show="datamap.taskPending" md-mode="query"></md-progress-linear>
+</div>

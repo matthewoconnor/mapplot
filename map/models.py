@@ -1,4 +1,5 @@
 import re
+import requests
 import matplotlib.path as matplotlib_path
 import numpy as np
 
@@ -15,6 +16,7 @@ from .utils import kml_hex_color_from_value_range, kml_height_from_value_range
 
 AREA_TYPES = (
     ("UNCATEGORIZED", "Uncategorized"),
+    ("BLOCK", "Block"),
     ("NEIGHBORHOOD", "Neighborhood"),
     ("WARD", "Ward"),
     ("DISTRICT", "District"),
@@ -29,18 +31,36 @@ BOUNDARY_TYPES = (
     ("INNER", "Inner Boundary")
 )
 
+WEIGHT_TYPES = (
+    ("COUNT", "Count Instances"),
+    ("SUM", "Sum Field value")
+)
+
+CATEGORIZE_TYPES = (
+    ("POINT", "Location Point"),
+    ("LATLNG", "Latitude Longitude"),
+    ("JOIN", "Join on Common Field"),
+    ("JOIN_MAP", "Join on Field Mapping")
+)
+
+DATASET_TYPES = (
+    ("SOCRATA", "Socrata Soda Data Portal"),
+    ("OTHER", "Url for Other Data Source")
+)
+
 
 class Area(models.Model):
     """
     A single enclosed area
     """
-    name = models.CharField(max_length=255)
-    external_identifier = models.CharField(max_length=255)
-    area_type = models.CharField(max_length=50, choices=AREA_TYPES)
-    boundary_type = models.CharField(max_length=50, choices=BOUNDARY_TYPES)
+    name = models.CharField(max_length=256)
+    external_identifier = models.CharField(max_length=256)
+    area_type = models.CharField(max_length=64, choices=AREA_TYPES)
+    boundary_type = models.CharField(max_length=64, choices=BOUNDARY_TYPES)
     polygon = models.TextField()
-    mbr = models.CharField(max_length=255) #n,e,s,w
+    mbr = models.CharField(max_length=256) #n,e,s,w
     is_primary = models.BooleanField(default=True)
+
     outer_area = models.ForeignKey("Area", related_name="inner_areas", related_query_name="inner_area", null=True, blank=True)
     primary_area = models.ForeignKey("Area", related_name="child_areas", related_query_name="child_area", null=True, blank=True)
 
@@ -77,7 +97,6 @@ class Area(models.Model):
                     return True
         return False
 
-
     def get_polygon_list(self):
         return [point.split(",") for point in self.polygon.split(";")]
 
@@ -92,6 +111,16 @@ class Area(models.Model):
                 "outer":ca.get_polygon_list(),
                 "inner":[dict(area=ia, polygon=ia.get_polygon_list()) for ia in ca.inner_areas.all()]
             } for ca in self.child_areas.all()]
+
+    def get_geometry(self):
+        """Almost identical to get_grouped_polygon_list, but without area instances"""
+        return [{
+            "outer":self.get_polygon_list(),
+            "inner":[ia.get_polygon_list() for ia in self.inner_areas.all()]
+        }] + [{
+            "outer":ca.get_polygon_list(),
+            "inner":[ia.get_polygon_list() for ia in ca.inner_areas.all()]
+        } for ca in self.child_areas.all()]
 
     def mbr_from_polygon(self):
         points = self.polygon.split(";")
@@ -109,16 +138,19 @@ class Area(models.Model):
 
 
 class AreaMap(models.Model):
-    """ A collection of areas (e.g. Chicago Neighborhoods)"""
-    name = models.CharField(max_length=255)
+    """ 
+    A collection of areas (e.g. Chicago Neighborhoods)
+    """
+    name = models.CharField(max_length=256)
+    description = models.CharField(max_length=256, blank=True)
     areas = models.ManyToManyField("Area", null=True, blank=True)
-    data_source = models.CharField(max_length=255, null=True, blank=True) # e.g. "data.cityofchicago.org"
-    dataset_identifier = models.CharField(max_length=255, null=True, blank=True)
+    data_source = models.CharField(max_length=256, null=True, blank=True) # e.g. "data.cityofchicago.org"
+    dataset_identifier = models.CharField(max_length=256, null=True, blank=True)
 
     kml_file = models.FileField(upload_to="uploads/areamap/", null=True, blank=True)
-    area_name_path = models.CharField(max_length=255, null=True, blank=True)
-    area_external_identifier_path = models.CharField(max_length=255, null=True, blank=True)
-    area_default_type = models.CharField(max_length=50, null=True, blank=True)
+    area_name_path = models.CharField(max_length=256, null=True, blank=True)
+    area_external_identifier_path = models.CharField(max_length=256, null=True, blank=True)
+    area_default_type = models.CharField(max_length=64, null=True, blank=True)
 
     created_time = models.DateTimeField()
 
@@ -135,11 +167,12 @@ class AreaMap(models.Model):
         if on_iteration:
             on_iteration(i, total)
 
-        for i, placemark in enumerate( placemarks ):
+        for placemark in placemarks.items():
 
             # If callable function is passed to keep track of progress, call it
+            i += 1
             if on_iteration:
-                on_iteration(i+1, total)
+                on_iteration(i, total)
 
             polygons = placemark.find("Polygon")
             primary_area = None 
@@ -237,41 +270,97 @@ class AreaMap(models.Model):
         return super().save(*args, **kwargs)
 
 
+class AreaBin(models.Model):
+    data_map = models.ForeignKey("DataMap")
+    area = models.ForeignKey("Area")
+    value = models.FloatField(default=0.0) # value of the bin
+    count = models.IntegerField(default=0) # number of rows used for bin
 
-class KmlMap(models.Model):
-    """ A generated KML file for a data map"""
-    name = models.CharField(max_length=255)
+    def get_geometry(self):
+        return {
+            "id": self.id,
+            "name": self.area.name,
+            "geometry": self.area.get_geometry(),
+            "value": self.value,
+            "count": self.count
+        }
+
+
+class DataMap(models.Model):
+    """
+    A generated KML file for a data map
+    """
+    name = models.CharField(max_length=256)
+    description = models.CharField(max_length=256, blank=True)
     user = models.ForeignKey("auth.User")
 
-    data_source = models.CharField(max_length=255, null=True, blank=True) # e.g. "data.cityofchicago.org"
-    dataset_identifier = models.CharField(max_length=255, null=True, blank=True)
     area_map = models.ForeignKey("AreaMap", null=True, blank=True)
 
+    dataset_type = models.CharField(max_length=256, choices=DATASET_TYPES, blank=True)
+
+    # for socrata datasets
+    data_source = models.CharField(max_length=256, null=True, blank=True) # e.g. "data.cityofchicago.org"
+    dataset_identifier = models.CharField(max_length=256, null=True, blank=True)
+
+    # other datasets
+    dataset_url = models.URLField(max_length=256, blank=True)
+    
+    weight_type = models.CharField(max_length=64, choices=WEIGHT_TYPES)
+    categorize_type = models.CharField(choices=CATEGORIZE_TYPES, max_length=64)
+
+    point_key = models.CharField(max_length=256, blank=True)
+    latitude_key = models.CharField(max_length=256, blank=True)
+    longitude_key = models.CharField(max_length=256, blank=True)
+    join_key = models.CharField(max_length=256, blank=True)
+    join_map_file = models.FileField(upload_to="uploads/joinmap/", null=True, blank=True) # json file for complex join mapping
+
+    value_key = models.CharField(max_length=256, blank=True)
+    querystring = models.CharField(max_length=256, blank=True)
+
     kml_file = models.FileField(upload_to="uploads/datamap/", null=True, blank=True)
+
+    task_id = models.CharField(max_length=256, blank=True)  # For tracking progress
 
     created_time = models.DateTimeField()
     updated_time = models.DateTimeField()
 
+    # KEEP
     def get_file_url(self):
         try:
             return self.kml_file.url
         except:
             return None
 
+    # KEEP
     def get_socrata_client(self, *args, **kwargs):
         socrata_credentials = settings.DATA_PORTAL_KEYS.get("socrata", None)
+        session_adapter = dict(
+                prefix="http://", 
+                adapter=requests.adapters.HTTPAdapter(max_retries=3))
         if socrata_credentials:
-            return Socrata(self.data_source, socrata_credentials["app_token"], username=socrata_credentials["username"], password=socrata_credentials["password"])
+            return Socrata(
+                self.data_source, 
+                socrata_credentials["app_token"], 
+                username=socrata_credentials["username"],
+                password=socrata_credentials["password"],
+                session_adapter=session_adapter)
         else:
-            return Socrata(self.data_source, None)
+            return Socrata(
+                self.data_source, 
+                None, 
+                session_adapter=session_adapter)
 
-    def area_bins_from_soda_dataset(self, *args, **kwargs):
+    def get_dataset_count(self, *args, **kwargs):
+        # to do: include filters
+        client = self.get_socrata_client()
+        dataset_count = client.get(self.dataset_identifier, exclude_system_fields=False, select="count(:id)")[0].get("count_id")
+        return dataset_count
+
+    # NEW
+    def areabin_dict_from_socrata_dataset(self, *args, **kwargs):
         limit = kwargs.get("limit", 1000)
         offset = kwargs.get("offset", 0)
         iterations = kwargs.get("iterations", 1)
-        search_kwargs = kwargs.get("search_kwargs", dict())
-        lng_fieldname = kwargs.get("lng_field", "longitude")
-        lat_fieldname = kwargs.get("lat_field", "latitude")
         on_iteration = kwargs.get("on_iteration", None)
 
         client = self.get_socrata_client()
@@ -281,13 +370,12 @@ class KmlMap(models.Model):
         ).prefetch_related("inner_areas", "child_areas__inner_areas")
 
         area_bins = [dict(
-                area=area,
-                polygons=area.get_grouped_polygon_list(),
-                count=0,
-            ) for area in areas]
+            area=area,
+            polygons=area.get_grouped_polygon_list(),
+            count=0,
+        ) for area in areas]
 
         i = 0
-        without_coords = 0
 
         # If callable function is passed to keep track of progress, call it
         if on_iteration:
@@ -302,60 +390,74 @@ class KmlMap(models.Model):
                 on_iteration(i, iterations)
 
             data = client.get(
-                self.dataset_identifier, 
-                content_type="json", 
-                limit=limit, 
-                offset=offset, **search_kwargs)
+                self.dataset_identifier,
+                content_type="json",
+                limit=limit,
+                offset=offset) # ADD WHERE CLAUSE FROM QUEYSTRING
 
             if not data:
-                print("done with data")
                 break
-            else:
-                print("data {0} to {1}".format(offset, offset + limit))
 
-            for row in data:
-
-                try:
-                    lat_value = row[lat_fieldname]
-                    lng_value = row[lng_fieldname]
-                    if isinstance(lat_value, dict) and lat_value.get("type", "") == "Point":
-                        coords = lat_value.get("coordinates")
+            if self.categorize_type == "POINT":
+                for row in data:
+                    try:
+                        point = row[self.point_key]
+                        coords = point.get("coordinates")
                         lng = float(coords[0])
                         lat = float(coords[1])
-                    else:
-                        lng = float(lng_value)
-                        lat = float(lat_value)
+                        for ab in area_bins:
+                            if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
+                                ab["count"] += 1
+                                break
+                    except:
+                        pass
 
-                    for ab in area_bins:
-                        if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
-                            ab["count"] += 1
-                            break
-                except:
-                    without_coords += 1
+            elif self.categorize_type == "LATLNG":
+                for row in data:
+                    try:
+                        lng = float(row[self.latitude_key])
+                        lat = float(row[self.longitude_key])
+                        for ab in area_bins:
+                            if ab["area"].group_contains_point(lng, lat, grouped_polygon_list=ab["polygons"]):
+                                ab["count"] += 1
+                                break
+                    except:
+                        pass
 
             offset += limit
 
         return area_bins
 
-    def save_kmlfile_from_area_bins(self, area_bins):
-        counts = [ab["count"] for ab in area_bins]
+    # KEEP
+    def save_kmlfile_from_areabins(self):
+        areabins = self.areabins.all()
+        counts = [ab.count for ab in areabins]
         min_count = min(counts)
         max_count = max(counts)
 
-        for ab in area_bins:
-            ab["height"] = kml_height_from_value_range(ab["count"], min_count, max_count)
-            ab["color"] = kml_hex_color_from_value_range(ab["count"], min_count, max_count)
+        for ab in areabins:
+            ab["height"] = kml_height_from_value_range(ab.count, min_count, max_count)
+            ab["color"] = kml_hex_color_from_value_range(ab.count, min_count, max_count)
 
         kml_string = render_to_string("map/map_template.kml", dict(
             kml_map=self,
-            area_bins=area_bins
+            areabins=areabins
         ))
 
         self.kml_file.save("{0} {1}.kml".format(self.name, self.id), ContentFile(kml_string))
 
-        print("SAVED FILE")
-
         return self.kml_file.path
+
+    # NEW
+    def save_areabins_from_dicts(self, areabin_dicts):
+        for ab_dict in areabin_dicts:
+            AreaBin.objects.update_or_create(
+                data_map=self,
+                area=ab_dict["area"],
+                defaults={
+                    "count": ab_dict.get("count", 0),
+                    "value": ab_dict.get("value", 0.0)
+                });
 
     def kml_mapplot_from_soda_dataset(self, *args, **kwargs):
         area_bins = self.area_bins_from_soda_dataset(*args, **kwargs)
@@ -366,7 +468,7 @@ class KmlMap(models.Model):
 
     def save(self, *args, **kwargs):
         now = timezone.now()
-        self.created_time = self.created_time or timezone.now()
+        self.created_time = self.created_time or now
         self.updated_time = now
         self.user_id = 1 # REMOVE WHEN ABILITY FOR MORE USERS
         return super().save(*args, **kwargs)
