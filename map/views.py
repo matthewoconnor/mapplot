@@ -131,10 +131,35 @@ class KmlAreaMapAutocomplete(View):
 class SocrataDatamapMetadata(View):
 
     def get(self, request, *args, **kwargs):
-        datamap_id = kwargs.get("datamap_id")
-        datamap = DataMap.objects.get(id=datamap_id)
-        metadata = datamap.get_socrata_client().get_metadata(datamap.dataset_identifier)
-        return JsonResponse(metadata)
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        context = dict(success=True, data=datamap.get_metadata())
+
+        return JsonResponse(context)
+
+
+class SocrataDataMapMetaDataColumns(View):
+
+    def get(self, request, *args, **kwargs):
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        md = datamap.get_metadata()
+
+        columns = [dict(
+            fieldname=c["fieldName"], 
+            name=c["name"], 
+            datatype=c["dataTypeName"], 
+            rendertype=c["renderTypeName"]) for c in md["columns"]]
+
+        print(columns)
+
+        context = dict(success=True, data=columns)
+
+        return JsonResponse(context)
 
 
 class DataMapGeometry(View):
@@ -155,5 +180,24 @@ class DataMapGeometry(View):
         }
 
         context = dict(success=True, data=datamap_json)
+
+        return JsonResponse(context)
+
+class SocrataDataMapMetaDataColumns(View):
+
+    def get(self, request, *args, **kwargs):
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        md = datamap.get_metadata()
+
+        columns = [dict(
+            fieldname=c["fieldName"], 
+            name=c["name"], 
+            datatype=c["dataTypeName"], 
+            rendertype=c["renderTypeName"]) for c in md["columns"]]
+
+        context = dict(success=True, data=columns)
 
         return JsonResponse(context)

@@ -5,7 +5,7 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Categorize Type</label>
-			<md-select name="name" ng-model="datamap.categorize_type">
+			<md-select name="categorize_type" ng-model="datamap.categorize_type">
 				<md-option ng-value="'POINT'">Location Point</md-option>
 				<md-option ng-value="'LATLNG'">Latitude Longitude</md-option>
 				<md-option ng-value="'JOIN'" ng-disabled="true">Join on Common Field</md-option>
@@ -14,24 +14,32 @@
 		</md-input-container>
 		<div flex-gt-sm ng-show="datamap.categorize_type == 'LATLNG'">
 			<md-input-container>
-				<label>Latitude Field</label><!-- Get valid options from metadata, preselect 'latitude' -->
-				<input name="name" ng-model="datamap.latitude_key">
+				<label>Latitude Field</label>
+				<md-select name="latitude_key" ng-model="datamap.latitude_key">
+					<md-option ng-repeat="field_choice in datamap.metadata.fields.number_fields" ng-value="field_choice.fieldname">{$ field_choice.name $}</md-option>
+				</md-select>
 			</md-input-container>
 			<md-input-container>
-				<label>Longitude Field</label><!-- Get valid options from metadata, preselect 'longitude' -->
-				<input name="name" ng-model="datamap.longitude_key">
+				<label>Longitude Field</label>
+				<md-select name="longitude_key" ng-model="datamap.longitude_key">
+					<md-option ng-repeat="field_choice in datamap.metadata.fields.number_fields" ng-value="field_choice.fieldname">{$ field_choice.name $}</md-option>
+				</md-select>
 			</md-input-container>
 		</div>
 		<div flex-gt-sm ng-show="datamap.categorize_type == 'POINT'">
 			<md-input-container flex-gt-sm>
 				<label>Location Field</label><!-- Get valid options from metadata, preselect 'location' -->
-				<input name="name" ng-model="datamap.point_key">
+				<md-select name="point_key" ng-model="datamap.point_key">
+					<md-option ng-repeat="field_choice in datamap.metadata.fields.point_fields" ng-value="field_choice.fieldname">{$ field_choice.name $}</md-option>
+				</md-select>
 			</md-input-container>
 		</div>
 		<div flex-gt-sm ng-show="datamap.categorize_type == 'JOIN'">
 			<md-input-container flex-gt-sm>
 				<label>Join Field</label><!-- Get valid options from metadata, cannot determine default -->
-				<input name="name" ng-model="datamap.join_key">
+				<md-select name="join_key" ng-model="datamap.join_key">
+					<md-option ng-repeat="field_choice in datamap.metadata.fields.all_fields" ng-value="field_choice.fieldname">{$ field_choice.name $}</md-option>
+				</md-select>
 			</md-input-container>
 		</div>
 	</md-content>
@@ -42,11 +50,11 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Weight Type</label>
-			<input name="name" ng-model="datamap.weight_type">
+			<input name="weight_type" ng-model="datamap.weight_type">
 		</md-input-container>
 		<md-input-container flex-gt-sm ng-show="datamap.weight_type == 'SUM'">
 			<label>Value Field</label>
-			<input name="name" ng-model="datamap.value_key">
+			<input name="value_key" ng-model="datamap.value_key">
 		</md-input-container>
 	</md-content>
 
@@ -54,7 +62,7 @@
 	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Querystring</label>
-			<input name="name" ng-model="datamap.querystring">
+			<input name="querystring" ng-model="datamap.querystring">
 		</md-input-container>
 	</md-content>
 

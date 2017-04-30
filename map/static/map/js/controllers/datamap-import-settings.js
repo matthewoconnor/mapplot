@@ -24,17 +24,17 @@
     	}
 
       $scope.getSubmitData = function() {
-          return {
-            "weight_type":$scope.datamap.weight_type,
-            "categorize_type":$scope.datamap.categorize_type, 
-            "point_key":$scope.datamap.point_key, 
-            "latitude_key":$scope.datamap.latitude_key,
-            "longitude_key":$scope.datamap.longitude_key,
-            "join_key":$scope.datamap.join_key,
-            "value_key":$scope.datamap.value_key,
-            "querystring":$scope.datamap.querystring
-          }
+        return {
+          "weight_type":$scope.datamap.weight_type,
+          "categorize_type":$scope.datamap.categorize_type, 
+          "point_key":$scope.datamap.point_key, 
+          "latitude_key":$scope.datamap.latitude_key,
+          "longitude_key":$scope.datamap.longitude_key,
+          "join_key":$scope.datamap.join_key,
+          "value_key":$scope.datamap.value_key,
+          "querystring":$scope.datamap.querystring
         }
+      }
 
 	});
 })();
