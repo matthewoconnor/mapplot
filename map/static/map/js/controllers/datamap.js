@@ -65,7 +65,7 @@
 	  				.then(function(areabins){
 	  					$scope.datamap.addToCesiumMap($scope.cesium);
 	  				})
-	  				.then($scope.datamap.setCountsMetadata)
+	  				.then($scope.datamap.setMetadataCounts)
 	  				.then($scope.datamap.setCesiumEntitiesColor)
 	  				.then(function(){
 	  					$scope.isLoading = false;

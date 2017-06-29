@@ -39,11 +39,31 @@ function Datamap(options) {
     	// returns a promise
   };
 
-  this.fetchGeometry = function() {
-  	// conditionally fetch geometry if doesn't already have it
-  		// returns a promise
+  this.setMetadataColumns = function() {
+    self.metadata = self.metadata || {};
+    if (self.metadata.fields ) {
+      return Promise.resolve();
+    } else {
+      return $.get("/app/datamap/"+self.id+"/metadata/columns/").then(function(response){
+        if(response.success){
+          
+          self.metadata.fields = {
+            "all_fields":response.data,
+            "number_fields":response.data.filter(function(f){return f.rendertype == "number"}),
+            "point_fields":response.data.filter(function(f){return f.rendertype == "point"}),
+            "text_fields":response.data.filter(function(f){return f.rendertype == "text"}),
+            "date_fields":response.data.filter(function(f){return f.rendertype == "calendar_date"})
+          }
+          return self.metadata.fields
+        }else{
+          throw "Error!!"
+        }
+      });
+    }
+  }
 
-  	// consider using $.get instead of $http angular service
+  this.fetchGeometry = function() {
+
 		return $.get("/app/datamap/"+self.id+"/geometry/").then(function(response){
       if(response.success){
         self.geometry = response.data.geometry;
@@ -110,19 +130,21 @@ function Datamap(options) {
 		}
   }
 
-  this.setCountsMetadata = function() {
+  this.setMetadataCounts = function() {
   	// calculates the max and min counts for the datamap's areabins
 
-  	self.counts = {
+    self.metadata = self.metadata || {};
+
+  	self.metadata.counts = {
   		"data":self.areabins.map(function(ab) {return ab.count;})
   	}
-  	self.counts.max = Math.max.apply(null, self.counts.data);
-  	self.counts.min = Math.min.apply(null, self.counts.data);
+  	self.metadata.counts.max = Math.max.apply(null, self.metadata.counts.data);
+  	self.metadata.counts.min = Math.min.apply(null, self.metadata.counts.data);
   }
 
   this.setCesiumEntitiesColor = function() {
-  	var max = self.counts.max;
-  	var min = self.counts.min;
+  	var max = self.metadata.counts.max;
+  	var min = self.metadata.counts.min;
   	var range = max - min;
 
   	function heatMapColorforValue(value){

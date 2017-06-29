@@ -1,10 +1,15 @@
-from django.views.generic import View, FormView
+from django.views.generic import View, TemplateView, FormView
 from django.http import JsonResponse
 
 from .models import DataMap, AreaMap
 from .utils import start_datamap_import_task
 from .tasks import poll_task_progress
 from .forms import DataMapForm, DataMapImportSettingsForm
+from .viewmixins import AuthenticateLoginViewMixin
+
+
+class DataMapApplicationView(AuthenticateLoginViewMixin, TemplateView):
+    template_name="map/app.html"
 
 
 # NEW DATAMAP CREATE VIEWS
@@ -131,10 +136,35 @@ class KmlAreaMapAutocomplete(View):
 class SocrataDatamapMetadata(View):
 
     def get(self, request, *args, **kwargs):
-        datamap_id = kwargs.get("datamap_id")
-        datamap = DataMap.objects.get(id=datamap_id)
-        metadata = datamap.get_socrata_client().get_metadata(datamap.dataset_identifier)
-        return JsonResponse(metadata)
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        context = dict(success=True, data=datamap.get_metadata())
+
+        return JsonResponse(context)
+
+
+class SocrataDataMapMetaDataColumns(View):
+
+    def get(self, request, *args, **kwargs):
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        md = datamap.get_metadata()
+
+        columns = [dict(
+            fieldname=c["fieldName"], 
+            name=c["name"], 
+            datatype=c["dataTypeName"], 
+            rendertype=c["renderTypeName"]) for c in md["columns"]]
+
+        print(columns)
+
+        context = dict(success=True, data=columns)
+
+        return JsonResponse(context)
 
 
 class DataMapGeometry(View):
@@ -155,5 +185,24 @@ class DataMapGeometry(View):
         }
 
         context = dict(success=True, data=datamap_json)
+
+        return JsonResponse(context)
+
+class SocrataDataMapMetaDataColumns(View):
+
+    def get(self, request, *args, **kwargs):
+        datamap = DataMap.objects.prefetch_related(
+            "areabin_set__area"
+        ).get(id=kwargs.get("datamap_id"))
+
+        md = datamap.get_metadata()
+
+        columns = [dict(
+            fieldname=c["fieldName"], 
+            name=c["name"], 
+            datatype=c["dataTypeName"], 
+            rendertype=c["renderTypeName"]) for c in md["columns"]]
+
+        context = dict(success=True, data=columns)
 
         return JsonResponse(context)

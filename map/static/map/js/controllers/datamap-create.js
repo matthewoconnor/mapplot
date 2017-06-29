@@ -24,8 +24,11 @@
 
         $scope.$on("datamaps:edit_datamap", function(event, datamap_id) {
           $scope.datamap = $datamaps.getById(datamap_id);
-          $scope.current_tab = "basic-info";
-          $scope.change_editing_state("edit");
+          $scope.datamap.setMetadataColumns().then(function(){
+            $scope.current_tab = "basic-info";
+            $scope.change_editing_state("edit");
+            $scope.$apply();
+          });
         });
 
         $scope.$on("datamaps:new_datamap", function(event, datamap_id) {
@@ -34,13 +37,13 @@
           $scope.change_editing_state("new");
         });
 
-        $scope.get_metadata = function() {
-          var url = "/app/kmlmap/"+$scope.kmlmap.id+"/metadata/";
-          $http.get(url)
-            .then(function(response){
-              $scope.metadata = response.data;
-            });
-        };
+        // $scope.get_metadata = function() {
+        //   var url = "/app/kmlmap/"+$scope.kmlmap.id+"/metadata/";
+        //   $http.get(url)
+        //     .then(function(response){
+        //       $scope.metadata = response.data;
+        //     });
+        // };
 
     	});
 })();

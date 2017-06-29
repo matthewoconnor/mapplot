@@ -58,7 +58,7 @@ class Area(models.Model):
     area_type = models.CharField(max_length=64, choices=AREA_TYPES)
     boundary_type = models.CharField(max_length=64, choices=BOUNDARY_TYPES)
     polygon = models.TextField()
-    mbr = models.CharField(max_length=256) #n,e,s,w
+    mbr = models.CharField(max_length=256) #n,e,s,w SHOUlD SEPARATE INTO INDIVIDUAL FIELDS TO HELP QUERY ON LARGER 
     is_primary = models.BooleanField(default=True)
 
     outer_area = models.ForeignKey("Area", related_name="inner_areas", related_query_name="inner_area", null=True, blank=True)
@@ -355,6 +355,10 @@ class DataMap(models.Model):
         client = self.get_socrata_client()
         dataset_count = client.get(self.dataset_identifier, exclude_system_fields=False, select="count(:id)")[0].get("count_id")
         return dataset_count
+
+    def get_metadata(self):
+        client = self.get_socrata_client()
+        return client.get_metadata(self.dataset_identifier)
 
     # NEW
     def areabin_dict_from_socrata_dataset(self, *args, **kwargs):
