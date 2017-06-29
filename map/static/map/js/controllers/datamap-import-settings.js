@@ -2,6 +2,15 @@
   angular.module("MapApplication")
   	.controller('DataMapImportSettingsController', function($scope, $log, $http, $datamaps) {
 
+      $scope.queryset_parameter_builder = {
+        "fieldname":"",
+        "operator":"",
+        "value":"",
+        "field_type":""
+      };
+
+      $scope.filters = [];
+
       $scope.submitForm =function() {
 
         var submitData = $.param($scope.getSubmitData());
@@ -22,6 +31,28 @@
 
         });
     	}
+
+      $scope.changed_queryset_parameter_fieldname = function(fieldname) {
+        var all_fields = $scope.datamap.metadata.fields.all_fields;
+        for (var i = 0; i < all_fields.length; i++){
+          var field = all_fields[i];
+          if(field.fieldname == fieldname){
+            if ($scope.queryset_parameter_builder.field_type != field.rendertype) {
+              $scope.queryset_parameter_builder.field_type = field.rendertype;
+              $scope.queryset_parameter_builder.value = "";
+            }
+            break;
+          }
+        }
+      }
+
+      $scope.add_queryset_filter = function() {
+        $scope.filters.push({
+          "fieldname":$scope.queryset_parameter_builder.fieldname,
+          "operator":$scope.queryset_parameter_builder.operator,
+          "value":$scope.queryset_parameter_builder.value
+        });
+      }
 
       $scope.getSubmitData = function() {
         return {

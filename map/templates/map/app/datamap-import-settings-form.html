@@ -60,6 +60,54 @@
 
 	<!-- QUERY FILTERING, MAKE THIS MORE USER FRIENDLY LATER -->
 	<md-content layout-gt-sm="row" layout-padding>
+		<md-chips class="custom-chips" ng-model="filters" readonly="true" md-removable="true">
+	      	<md-chip-template>
+	        	<span>
+	          		<strong>{$ $chip.fieldname $}</strong>
+	          		<span>{$ $chip.operator $)</span>
+	          		<strong>{$ $chip.value $}</strong>
+	        	</span>
+	      	</md-chip-template>
+	      	<button md-chip-remove class="md-primary">
+	        	<md-icon md-svg-icon="md-close"></md-icon>
+	      	</button>
+	    </md-chips>
+	</md-content>
+
+	<md-content layout-gt-sm="row" layout-padding>
+		<md-input-container flex-gt-sm>
+			<md-select 
+				ng-model="queryset_parameter_builder.fieldname" 
+				ng-change="changed_queryset_parameter_fieldname(queryset_parameter_builder.fieldname)">
+				<md-option 
+					ng-repeat="field_choice in datamap.metadata.fields.all_fields" 
+					ng-value="field_choice.fieldname">{$ field_choice.name $}</md-option>
+			</md-select>
+		</md-input-container>
+		<md-input-container flex-gt-sm>
+			<md-select ng-model="queryset_parameter_builder.operator">
+				<md-option ng-value="'<'"><</md-option>
+				<md-option ng-value="'<='"><=</md-option>
+				<md-option ng-value="'='">=</md-option>
+				<md-option ng-value="'>='">>=</md-option>
+				<md-option ng-value="'>'">></md-option>
+			</md-select>
+		</md-input-container>
+		<md-input-container flex-gt-sm ng-show="queryset_parameter_builder.field_type != 'calendar_date'">
+			<input ng-model="queryset_parameter_builder.value">
+		</md-input-container>
+		<md-input-container flex-gt-sm ng-if="queryset_parameter_builder.field_type == 'calendar_date'">
+			<md-datepicker 
+				ng-model="queryset_parameter_builder.value"
+				md-placeholder="Enter date"
+				md-open-on-focus></md-datepicker>
+		</md-input-container>
+		<md-input-container flex-gt-sm>
+			<md-button class="md-raised md-primary" ng-click="add_queryset_filter()">Add</md-button>
+		</md-input-container>
+	</md-content>
+
+	<md-content layout-gt-sm="row" layout-padding>
 		<md-input-container flex-gt-sm>
 			<label>Querystring</label>
 			<input name="querystring" ng-model="datamap.querystring">

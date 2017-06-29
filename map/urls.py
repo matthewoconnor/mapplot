@@ -13,7 +13,7 @@ urlpatterns = [
     # - Get metadata for DataMap
 
     url(r'^app/$',
-        TemplateView.as_view(template_name="map/app.html"), name="app"),
+        views.DataMapApplicationView.as_view(), name="app"),
     
     url(r'^app/task/progress/$',
         views.TaskProgressView.as_view(), name="task_progress"),
