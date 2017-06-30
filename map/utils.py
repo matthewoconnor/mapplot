@@ -46,10 +46,9 @@ def start_datamap_import_task(datamap):
     if datamap.querystring:
         soda_query_kwargs["where"] = datamap.querystring
 
-    get_bins_group = [get_datamap_areabins.si(datamap, **{
-        **soda_query_kwargs,
-        **dict(offset=i*iterations*limit)
-    }) for i in range(TASKS)]
+
+    task_kwargs = dict(soda_query_kwargs, offset=i*iterations*limit)
+    get_bins_group = [get_datamap_areabins.si(datamap, **task_kwargs) for i in range(TASKS)]
 
     workflow = chord(get_bins_group, merge_datamap_areabins.s(datamap))
     async_result = workflow.apply_async()
