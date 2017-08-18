@@ -158,7 +158,7 @@ class AreaMap(models.Model):
         
         on_iteration = kwargs.get("on_iteration", None)
 
-        d = pq(filename=self.kml_file.path, parser="xml")
+        d = pq(filename=self.kml_file.path, parser="xml").remove_namespaces()
         placemarks = d("Placemark")
         total = len(placemarks)
         i = 0

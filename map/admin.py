@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 
+from .tasks import import_areas_from_kml_file
 from .models import Area, AreaMap, DataMap, AreaBin
 
 
@@ -12,12 +13,16 @@ class AreaMapAdmin(admin.ModelAdmin):
 
     list_display = ("id", "name", "data_source", "dataset_identifier", "created_time")
 
+    actions = ["generate_areas_from_kmlfile"]
+
+    def generate_areas_from_kmlfile(modeladmin, request, queryset):
+    	for areamap in queryset:
+    		import_areas_from_kml_file.apply_async(args=[areamap])
+
 
 class DataMapAdmin(admin.ModelAdmin):
 
     list_display = ("id", "name", "area_map", "data_source", "dataset_identifier", "created_time")
-
-    actions = ["generate_kmlmap_async"]
 
 
 class AreaBinAdmin(admin.ModelAdmin):
