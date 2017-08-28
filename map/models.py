@@ -98,7 +98,7 @@ class Area(models.Model):
         return False
 
     def get_polygon_list(self):
-        return [point.split(",") for point in self.polygon.split(";")]
+        return [point.split(",")[:2] for point in self.polygon.split(";")]
 
     def get_grouped_polygon_list(self):
         """ meant to be called on the primary area"""
